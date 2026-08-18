@@ -1,10 +1,13 @@
 package francisco.ps.tracker.game;
 
+import francisco.ps.tracker.tracker.Tracker;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -27,6 +30,9 @@ public class Edition {
     @JoinColumn(name = "id_game")
     private Game game;
 
+    @OneToMany(mappedBy = "edition")
+    private List<Tracker> trackers = new ArrayList<>();
+
     protected Edition() {}
 
     public Edition(String editionName, String storeUrl, BigDecimal currentPrice, BigDecimal basePrice, Game game) {
@@ -35,6 +41,11 @@ public class Edition {
         this.currentPrice = currentPrice;
         this.basePrice = basePrice;
         this.game = game;
+    }
+
+    public void addTracker(Tracker tracker) {
+        trackers.add(tracker);
+        tracker.setEdition(this);
     }
 
 }
