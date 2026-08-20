@@ -35,7 +35,9 @@ public class Tracker {
 
     protected Tracker() {}
 
-    public Tracker(TrackerId id, BigDecimal targetPrice, boolean isActive, LocalDateTime createdAt) {
+    public Tracker(Chat chat, Edition edition, TrackerId id, BigDecimal targetPrice, boolean isActive, LocalDateTime createdAt) {
+        this.chat = chat;
+        this.edition = edition;
         this.id = id;
         this.targetPrice = targetPrice;
         this.isActive = isActive;
