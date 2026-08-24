@@ -43,6 +43,13 @@ webhook processing.
 
 ---
 
+### Technical Improvements
+* **Schema Evolution (Trade-off):** The project currently utilizes Hibernate's `ddl-auto=update` for rapid prototyping and
+  seamless schema generation. While highly efficient for local development, this is not good practice because Hibernate might
+  drop an existing column and create a new one, deleting user data when syncing the schema with the java entities. The
+  database could be managed with a tool like to **Flyway** to enforce strict, version-controlled SQL migrations and prevent
+  accidental data loss.
+
 ## Project Structure
 ```text
 francisco.ps.tracker
