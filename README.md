@@ -50,6 +50,8 @@ webhook processing.
   database could be managed with a tool like to **Flyway** to enforce strict, version-controlled SQL migrations and prevent
   accidental data loss.
 
+---
+
 ## Project Structure
 ```text
 francisco.ps.tracker
