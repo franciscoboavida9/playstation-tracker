@@ -51,7 +51,7 @@ class TrackerRepositoryTest {
     @Test
     @DisplayName("Should successfully persist and retrieve a Tracker with composite key")
     void shouldSaveAndRetrieveTrackerSuccessfully() {
-        Game eldenRing = gameRepository.save(new Game("Elden Ring", "FromSoftware"));
+        Game eldenRing = gameRepository.save(new Game("Elden Ring"));
         Edition edition = editionRepository.save(new Edition(
                 "Standard Edition",
                 URL_ER,

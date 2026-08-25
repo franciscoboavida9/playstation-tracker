@@ -14,16 +14,14 @@ public class Game {
     @Column(name = "id_game")
     private Long id;
     private String title;
-    private String publisher;
 
     @OneToMany(mappedBy = "game")
     private List<Edition> editions = new ArrayList<>();
 
     protected Game() {}
 
-    public Game(String title, String publisher) {
+    public Game(String title) {
         this.title = title;
-        this.publisher = publisher;
     }
 
     public void addEdition(Edition edition) {
