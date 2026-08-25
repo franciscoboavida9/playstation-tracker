@@ -54,7 +54,6 @@ class TrackerRepositoryTest {
         Game eldenRing = gameRepository.save(new Game("Elden Ring"));
         Edition edition = editionRepository.save(new Edition(
                 "Standard Edition",
-                URL_ER,
                 new BigDecimal("59.99"),
                 new BigDecimal("59.99"),
                 eldenRing
