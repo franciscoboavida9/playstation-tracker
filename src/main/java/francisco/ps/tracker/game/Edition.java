@@ -18,8 +18,6 @@ public class Edition {
     private Long id;
     @Column(name = "edition_name")
     private String editionName;
-    @Column(name = "store_url")
-    private String storeUrl;
     @Column(name = "current_price", precision = 5, scale = 2)
     private BigDecimal currentPrice;
     @Column(name = "base_price", precision = 5, scale = 2)
@@ -35,9 +33,8 @@ public class Edition {
 
     protected Edition() {}
 
-    public Edition(String editionName, String storeUrl, BigDecimal currentPrice, BigDecimal basePrice, Game game) {
+    public Edition(String editionName, BigDecimal currentPrice, BigDecimal basePrice, Game game) {
         this.editionName = editionName;
-        this.storeUrl = storeUrl;
         this.currentPrice = currentPrice;
         this.basePrice = basePrice;
         this.game = game;
