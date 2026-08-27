@@ -21,8 +21,8 @@ public record GameAndEditionDto(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ConceptDto (
-            List<ProductDto> products,
-            @JsonProperty("name") String title
+            @JsonProperty("name") String title,
+            List<ProductDto> products
     ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)

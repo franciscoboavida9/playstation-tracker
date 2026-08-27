@@ -1,6 +1,8 @@
 package francisco.ps.tracker.infrastructure.sony;
 
+import francisco.ps.tracker.infrastructure.sony.dto.GameAndEditionDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.MediaType;
@@ -8,16 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest;
 import org.springframework.test.web.client.MockRestServiceServer;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-@RestClientTest(PsSearchAdapter.class)
-public class PsSearchAdapterTest {
+@RestClientTest(SonyStoreClient.class)
+public class SonyStoreClientTest {
     @Autowired
-    private PsSearchAdapter adapter;
+    private SonyStoreClient adapter;
 
     @Autowired
     private MockRestServiceServer mockServer;
@@ -49,8 +55,10 @@ public class PsSearchAdapterTest {
                 }
                 """, expectedId, expectedName);
 
+        String expectedEncodedSearch = URLEncoder.encode(search, StandardCharsets.UTF_8);
+
         // Simulate Sony GraphQL endpoint and enforce required Apollo preflight header
-        mockServer.expect(requestTo(adapter.buildSearchUrl(search)))
+        mockServer.expect(requestTo(containsString(expectedEncodedSearch)))
                 .andExpect(header("apollo-require-preflight", "true"))
                 .andRespond(withSuccess(mockJsonResponse, MediaType.APPLICATION_JSON));
 
@@ -64,6 +72,60 @@ public class PsSearchAdapterTest {
         assertEquals(1, results.size());
         assertEquals(expectedId, results.getFirst().id());
         assertEquals(expectedName, results.getFirst().name());
+
+        mockServer.verify();
+    }
+
+    @Test
+    void findGame() {
+        String id = "1";
+
+        String mockJsonResponse = """
+                {
+                  "data": {
+                    "productRetrieve": {
+                      "concept": {
+                        "name": "elden ring",
+                        "products": [
+                          {
+                            "id": "1",
+                            "name": "elden ring ps4 and ps5",
+                            "webctas": [
+                              {
+                                "price": {
+                                  "basePrice": "59.99",
+                                  "discountedPrice": "59.99"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+                """;
+
+        String expectedEncodedSearch = URLEncoder.encode(id, StandardCharsets.UTF_8);
+
+        // Simulate Sony GraphQL endpoint and enforce required Apollo preflight header
+        mockServer.expect(requestTo(containsString(expectedEncodedSearch)))
+                .andExpect(header("apollo-require-preflight", "true"))
+                .andRespond(withSuccess(mockJsonResponse, MediaType.APPLICATION_JSON));
+
+        GameAndEditionDto response = adapter.gameAndEditionInfo(id);
+
+        assertNotNull(response);
+        assertNotNull(response.data());
+
+        var results = response.data().productRetrieve().concept();
+
+        assertEquals(1, results.products().size());
+        assertEquals("elden ring", results.title());
+        assertEquals("1", results.products().getFirst().id());
+        assertEquals("elden ring ps4 and ps5", results.products().getFirst().editionName());
+        assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().basePrice());
+        assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().currentPrice());
 
         mockServer.verify();
     }
