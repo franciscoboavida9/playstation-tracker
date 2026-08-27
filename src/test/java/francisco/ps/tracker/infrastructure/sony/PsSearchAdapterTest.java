@@ -2,6 +2,7 @@ package francisco.ps.tracker.infrastructure.sony;
 
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ public class PsSearchAdapterTest {
     private MockRestServiceServer mockServer;
 
     @ParameterizedTest
-    @ValueSource(strings = {
+    @CsvSource({
             "elden ring, id-1, Elden Ring",                 // standard space
             "spider-man, id-2, Spider-Man",                 // hyphen
             "ratchet & clank, id-3, Ratchet and Clank",     // ampersand
@@ -35,7 +36,7 @@ public class PsSearchAdapterTest {
             "?!@#$%, id-8, Special Chars Game",             // pure special characters / symbols
     })
     void findSearch(String search, String expectedId, String expectedName) {
-        String mockJsonResponse = """
+        String mockJsonResponse = String.format("""
                 {
                   "data": {
                     "universalSearch": {
@@ -48,7 +49,7 @@ public class PsSearchAdapterTest {
                     }
                   }
                 }
-                """;
+                """, expectedId, expectedName);
 
         // Simulate Sony GraphQL endpoint and enforce required Apollo preflight header
         mockServer.expect(requestTo(adapter.buildSearchUrl(search)))
