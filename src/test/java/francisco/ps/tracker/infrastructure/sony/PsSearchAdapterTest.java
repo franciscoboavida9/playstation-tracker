@@ -1,6 +1,8 @@
 package francisco.ps.tracker.infrastructure.sony;
 
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,18 +23,26 @@ public class PsSearchAdapterTest {
     @Autowired
     private MockRestServiceServer mockServer;
 
-    @Test
-    void findSearch() {
-        String search = "elden ring";
-
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "elden ring, id-1, Elden Ring",                 // standard space
+            "spider-man, id-2, Spider-Man",                 // hyphen
+            "ratchet & clank, id-3, Ratchet and Clank",     // ampersand
+            "Nioh 2, id-4, Nioh 2",                         // letters and numbers
+            " god  of  war , id-5, God of War",             // leading/trailing spaces
+            "🎮 cyberpunk, id-6, Cyberpunk",                // emojis and unicode symbols
+            "asdfghjkl12345, id-7, Unknown Game",           // gibberish / non-existent search
+            "?!@#$%, id-8, Special Chars Game",             // pure special characters / symbols
+    })
+    void findSearch(String search, String expectedId, String expectedName) {
         String mockJsonResponse = """
                 {
                   "data": {
                     "universalSearch": {
                       "results": [
                         {
-                          "id": "EP0700-PPSA04609_00-ELDENRING0000000",
-                          "name": "Elden Ring PS4 & PS5"
+                          "id": "%s",
+                          "name": "%s"
                         }
                       ]
                     }
@@ -53,8 +63,8 @@ public class PsSearchAdapterTest {
         var results = response.data().search().results();
 
         assertEquals(1, results.size());
-        assertEquals("EP0700-PPSA04609_00-ELDENRING0000000", results.getFirst().id());
-        assertEquals("Elden Ring PS4 & PS5", results.getFirst().name());
+        assertEquals(expectedId, results.getFirst().id());
+        assertEquals(expectedName, results.getFirst().name());
 
         mockServer.verify();
     }
