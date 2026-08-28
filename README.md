@@ -17,11 +17,12 @@ alert notifications to specific chat sessions.
 
 ## Built With
 * **Language:** Java 21
-* **Framework:** Spring Boot (Spring Data JPA, Validation, WebMVC)
+* **Framework:** Spring Boot (Spring Data JPA, Validation, WebMVC, RestClient)
 * **Database:** PostgreSQL 15
 * **Persistence & ORM:** Hibernate ORM
-* **Testing Infrastructure:** JUnit 5, Testcontainers, AssertJ
+* **Testing Infrastructure:** JUnit 5, Testcontainers, AssertJ, MockRestServiceServer
 * **Containerization:** Docker & Docker Compose
+
 ---
 
 ## Database Design
@@ -52,12 +53,28 @@ webhook processing.
 
 ---
 
+## External API Integration (Sony GraphQL)
+
+### Structural Decisions:
+* **Centralized HTTP Client (DRY):** All  requests to the PlayStation store are handled by the 
+`SonyStoreClient` adapter. A private generic helper method (`<T> T fetchFromSony`) handles the `RestClient`
+HTTP execution to avoid repeating code.
+* **Flexible Deserialization:** The Sony GraphQL API returns massive, deeply nested JSON trees. 
+The data is mapped into immutable Java `Record` DTOs. Using Jackson's 
+`@JsonIgnoreProperties(ignoreUnknown = true)` ensures the application only deserializes the specific data paths it 
+needs (like price and ID).
+* **Security & CSRF Bypass:** Safely accesses Sony's undocumented API by mimicking a browser, explicitly encoding 
+user inputs (to handle spaces/special characters) and enforcing required `apollo-require-preflight` HTTP headers.
+
+---
+
 ## Project Structure
 ```text
 francisco.ps.tracker
 ├── game/           # Core Domain: Game, Edition, Repositories
 ├── chat/           # Core Domain: Chat mappings and types
 ├── tracker/        # Core Domain: Associative Entity, composite keys, thresholds
+├── infrastructure/ # External Adapters: Sony API integration (SonyStoreClient, DTO records)
 ```
 
 ---
@@ -66,6 +83,10 @@ francisco.ps.tracker
 1. **Data Layer Integration (`TrackerRepositoryTest`):** Validates the composite keys, constraints, and persistence 
 logic using `@DataJpaTest`. Uses **Testcontainers** to run against a real, temporary PostgreSQL Docker container rather
 than an in-memory H2 mock, leveraging `TestEntityManager.flush()` to ensure SQL queries hit the disk.
+2. **HTTP Adapter Integration (`SonyStoreClientTest`):** Isolates the HTTP client using `@RestClientTest` and
+`MockRestServiceServer`. Proves the client securely builds expected URLs and successfully maps deeply nested JSON
+trees into Java records. Avoids testing tautology by utilizing Hamcrest matchers (`containsString`) to verify 
+URI encoding dynamically without duplicating massive GraphQL URL strings.
 
 (todo)
 
