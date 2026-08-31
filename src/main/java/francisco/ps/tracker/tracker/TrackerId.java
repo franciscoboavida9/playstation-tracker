@@ -14,11 +14,11 @@ public class TrackerId implements Serializable {
     private Long chatId;
 
     @Column(name = "id_edition")
-    private Long editionId;
+    private String editionId;
 
     public TrackerId() {}
 
-    public TrackerId(Long chatId, Long editionId) {
+    public TrackerId(Long chatId, String editionId) {
         this.chatId = chatId;
         this.editionId = editionId;
     }
