@@ -13,7 +13,6 @@ import java.util.List;
 @Entity
 public class Edition {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_edition")
     private String id;
     @Column(name = "edition_name")
@@ -33,7 +32,8 @@ public class Edition {
 
     protected Edition() {}
 
-    public Edition(String editionName, BigDecimal currentPrice, BigDecimal basePrice, Game game) {
+    public Edition(String id, String editionName, BigDecimal currentPrice, BigDecimal basePrice, Game game) {
+        this.id = id;
         this.editionName = editionName;
         this.currentPrice = currentPrice;
         this.basePrice = basePrice;

@@ -10,7 +10,6 @@ import java.util.List;
 @Entity
 public class Game {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_game")
     private String id;
     private String title;
@@ -20,7 +19,8 @@ public class Game {
 
     protected Game() {}
 
-    public Game(String title) {
+    public Game(String id, String title) {
+        this.id = id;
         this.title = title;
     }
 
