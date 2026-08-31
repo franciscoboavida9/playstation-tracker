@@ -10,15 +10,15 @@ import java.util.List;
 public class GameService {
     private final SonyStoreClient sonyStoreClient;
 
-    public GameService(SonyStoreClient sonyStoreClient, GameRepository gameRepository) {
+    public GameService(SonyStoreClient sonyStoreClient, ItemRepository itemRepository) {
         this.sonyStoreClient = sonyStoreClient;
-        this.gameRepository = gameRepository;
     }
 
-
-    public List<Game> search(String search) {
+    /*
+    public List<Item> search(String search) {
         SearchResponseDto searchResponseDto = sonyStoreClient.searchResponse(search);
 
-
     }
+
+     */
 }

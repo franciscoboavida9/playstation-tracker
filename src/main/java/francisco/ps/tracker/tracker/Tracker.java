@@ -1,7 +1,7 @@
 package francisco.ps.tracker.tracker;
 
 import francisco.ps.tracker.chat.Chat;
-import francisco.ps.tracker.game.Edition;
+import francisco.ps.tracker.game.Item;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,13 +31,13 @@ public class Tracker {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("editionId")
     @JoinColumn(name = "id_edition")
-    private Edition edition;
+    private Item item;
 
     protected Tracker() {}
 
-    public Tracker(Chat chat, Edition edition, TrackerId id, BigDecimal targetPrice, boolean isActive, LocalDateTime createdAt) {
+    public Tracker(Chat chat, Item item, TrackerId id, BigDecimal targetPrice, boolean isActive, LocalDateTime createdAt) {
         this.chat = chat;
-        this.edition = edition;
+        this.item = item;
         this.id = id;
         this.targetPrice = targetPrice;
         this.isActive = isActive;
