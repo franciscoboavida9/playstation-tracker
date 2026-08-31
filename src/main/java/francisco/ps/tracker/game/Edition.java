@@ -15,7 +15,7 @@ public class Edition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_edition")
-    private Long id;
+    private String id;
     @Column(name = "edition_name")
     private String editionName;
     @Column(name = "current_price", precision = 5, scale = 2)

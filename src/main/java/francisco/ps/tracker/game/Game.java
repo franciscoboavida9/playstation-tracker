@@ -12,7 +12,7 @@ public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_game")
-    private Long id;
+    private String id;
     private String title;
 
     @OneToMany(mappedBy = "game")
