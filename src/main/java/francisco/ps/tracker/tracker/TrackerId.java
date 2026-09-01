@@ -13,25 +13,25 @@ public class TrackerId implements Serializable {
     @Column(name = "id_chat")
     private Long chatId;
 
-    @Column(name = "id_edition")
-    private String editionId;
+    @Column(name = "id_item")
+    private String itemId;
 
     public TrackerId() {}
 
-    public TrackerId(Long chatId, String editionId) {
+    public TrackerId(Long chatId, String itemId) {
         this.chatId = chatId;
-        this.editionId = editionId;
+        this.itemId = itemId;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         TrackerId trackerId = (TrackerId) o;
-        return Objects.equals(chatId, trackerId.chatId) && Objects.equals(editionId, trackerId.editionId);
+        return Objects.equals(chatId, trackerId.chatId) && Objects.equals(itemId, trackerId.itemId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(chatId, editionId);
+        return Objects.hash(chatId, itemId);
     }
 }

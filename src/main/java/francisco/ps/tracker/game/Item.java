@@ -3,7 +3,6 @@ package francisco.ps.tracker.game;
 import francisco.ps.tracker.tracker.Tracker;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -11,38 +10,32 @@ import java.util.List;
 
 @Getter
 @Entity
-public class Edition {
+public class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_edition")
+    @Column(name = "id_item")
     private String id;
-    @Column(name = "edition_name")
-    private String editionName;
+    @Column(name = "item_name")
+    private String name;
     @Column(name = "current_price", precision = 5, scale = 2)
     private BigDecimal currentPrice;
     @Column(name = "base_price", precision = 5, scale = 2)
     private BigDecimal basePrice;
 
-    @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_game")
-    private Game game;
-
-    @OneToMany(mappedBy = "edition")
+    @OneToMany(mappedBy = "item")
     private List<Tracker> trackers = new ArrayList<>();
 
-    protected Edition() {}
+    protected Item() {}
 
-    public Edition(String editionName, BigDecimal currentPrice, BigDecimal basePrice, Game game) {
-        this.editionName = editionName;
-        this.currentPrice = currentPrice;
+    public Item(String id, String name, BigDecimal basePrice, BigDecimal currentPrice) {
+        this.id = id;
+        this.name = name;
         this.basePrice = basePrice;
-        this.game = game;
+        this.currentPrice = currentPrice;
     }
 
     public void addTracker(Tracker tracker) {
         trackers.add(tracker);
-        tracker.setEdition(this);
+        tracker.setItem(this);
     }
 
 }

@@ -1,15 +1,19 @@
 package francisco.ps.tracker.infrastructure.sony;
 
-import francisco.ps.tracker.infrastructure.sony.dto.GameAndEditionDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-@Service
+/**
+ * Infrastructure client responsible for communicating directly with Sony's GraphQL API.
+ * Handles HTTP requests, injecting required preflight headers,
+ * and mapping raw JSON responses into typed DTO records for search and product details.
+ */
+@Component
 public class SonyStoreClient {
     // Uses Sony's GraphQL persisted query hash
     private static final String searchUrl = "https://web.np.playstation.com/api/graphql/v1//" +
@@ -64,11 +68,13 @@ public class SonyStoreClient {
                 .body(responseType);
     }
 
+    /**
+     * Searches the PlayStation Store for games matching the provided search term.
+     *
+     * @param search The user's input.
+     * @return A SearchResponseDto containing the list of matching games and editions.
+     */
     public SearchResponseDto searchResponse(String search) {
         return fetchFromSony(search, searchUrl, SearchResponseDto.class);
-    }
-
-    public GameAndEditionDto gameAndEditionInfo(String id) {
-        return fetchFromSony(id, gameUrl, GameAndEditionDto.class);
     }
 }

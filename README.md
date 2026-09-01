@@ -33,7 +33,7 @@ alert notifications to specific chat sessions.
 * **Associative Entity Resolution:** The many-to-many (N:M) relationship between a Telegram `Chat` and a game `Edition`
 is resolved via the `Tracker` entity. This prevents hidden join tables and allows the relationship itself to hold 
 business logic (e.g., specific `target_price` thresholds).
-* **Composite Primary Keys:** A user should only be able to track a specific edition once. This uniqueness is guaranteed 
+* **Composite Primary Keys:** A user should only be able to track a specific item once. This uniqueness is guaranteed 
 at the database level using a composite key (`id_chat`, `id_edition`) implemented via JPA's `@EmbeddedId` and mapped 
 cleanly using `@MapsId`.
 * **Financial Precision:** Floating-point math is notoriously dangerous for currency. All monetary values are strictly 
