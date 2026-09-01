@@ -1,6 +1,5 @@
 package francisco.ps.tracker.infrastructure.sony;
 
-import francisco.ps.tracker.infrastructure.sony.dto.GameAndEditionDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,7 +46,11 @@ public class SonyStoreClientTest {
                       "results": [
                         {
                           "id": "%s",
-                          "name": "%s"
+                          "name": "%s",
+                          "price": {
+                            "basePrice": "59.99",
+                            "discountedPrice": "39.99"
+                          }
                         }
                       ]
                     }
@@ -73,59 +76,9 @@ public class SonyStoreClientTest {
         assertEquals(expectedId, results.getFirst().id());
         assertEquals(expectedName, results.getFirst().name());
 
-        mockServer.verify();
-    }
-
-    @Test
-    void findGame() {
-        String id = "1";
-
-        String mockJsonResponse = """
-                {
-                  "data": {
-                    "productRetrieve": {
-                      "concept": {
-                        "name": "elden ring",
-                        "products": [
-                          {
-                            "id": "1",
-                            "name": "elden ring ps4 and ps5",
-                            "webctas": [
-                              {
-                                "price": {
-                                  "basePrice": "59.99",
-                                  "discountedPrice": "59.99"
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-                """;
-
-        String expectedEncodedSearch = URLEncoder.encode(id, StandardCharsets.UTF_8);
-
-        // Simulate Sony GraphQL endpoint and enforce required Apollo preflight header
-        mockServer.expect(requestTo(containsString(expectedEncodedSearch)))
-                .andExpect(header("apollo-require-preflight", "true"))
-                .andRespond(withSuccess(mockJsonResponse, MediaType.APPLICATION_JSON));
-
-        GameAndEditionDto response = adapter.gameAndEditionInfo(id);
-
-        assertNotNull(response);
-        assertNotNull(response.data());
-
-        var results = response.data().productRetrieve().concept();
-
-        assertEquals(1, results.products().size());
-        assertEquals("elden ring", results.title());
-        assertEquals("1", results.products().getFirst().id());
-        assertEquals("elden ring ps4 and ps5", results.products().getFirst().editionName());
-        assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().basePrice());
-        assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().currentPrice());
+        assertNotNull(results.getFirst().price());
+        assertEquals("59.99", results.getFirst().price().basePrice());
+        assertEquals("39.99", results.getFirst().price().currentPrice());
 
         mockServer.verify();
     }

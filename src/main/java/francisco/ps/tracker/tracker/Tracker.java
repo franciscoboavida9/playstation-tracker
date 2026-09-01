@@ -29,7 +29,7 @@ public class Tracker {
 
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("editionId")
+    @MapsId("itemId")
     @JoinColumn(name = "id_item")
     private Item item;
 

@@ -1,16 +1,13 @@
 package francisco.ps.tracker.game;
 
 import francisco.ps.tracker.infrastructure.sony.SonyStoreClient;
-import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
-public class GameService {
+public class ItemService {
     private final SonyStoreClient sonyStoreClient;
 
-    public GameService(SonyStoreClient sonyStoreClient, ItemRepository itemRepository) {
+    public ItemService(SonyStoreClient sonyStoreClient, ItemRepository itemRepository) {
         this.sonyStoreClient = sonyStoreClient;
     }
 

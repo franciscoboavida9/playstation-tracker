@@ -1,9 +1,7 @@
 package francisco.ps.tracker.infrastructure.sony;
 
-import francisco.ps.tracker.infrastructure.sony.dto.GameAndEditionDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.net.URI;
@@ -70,7 +68,6 @@ public class SonyStoreClient {
                 .body(responseType);
     }
 
-
     /**
      * Searches the PlayStation Store for games matching the provided search term.
      *
@@ -79,15 +76,5 @@ public class SonyStoreClient {
      */
     public SearchResponseDto searchResponse(String search) {
         return fetchFromSony(search, searchUrl, SearchResponseDto.class);
-    }
-
-    /**
-     * Retrieves information and pricing for a specific game or edition.
-     *
-     * @param id The unique PlayStation Store product ID.
-     * @return A GameAndEditionDto containing pricing, metadata, and edition details.
-     */
-    public GameAndEditionDto gameAndEditionInfo(String id) {
-        return fetchFromSony(id, gameUrl, GameAndEditionDto.class);
     }
 }
