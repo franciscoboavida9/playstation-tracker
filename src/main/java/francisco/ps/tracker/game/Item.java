@@ -26,11 +26,11 @@ public class Item {
 
     protected Item() {}
 
-    public Item(String id, String name, BigDecimal currentPrice, BigDecimal basePrice) {
+    public Item(String id, String name, BigDecimal basePrice, BigDecimal currentPrice) {
         this.id = id;
         this.name = name;
-        this.currentPrice = currentPrice;
         this.basePrice = basePrice;
+        this.currentPrice = currentPrice;
     }
 
     public void addTracker(Tracker tracker) {
