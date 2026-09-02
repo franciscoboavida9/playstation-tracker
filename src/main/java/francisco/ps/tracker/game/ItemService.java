@@ -28,7 +28,7 @@ public class ItemService {
         List<Item> results = new ArrayList<>();
 
         // Check for possible null values in information given by the Sony API
-        List<SearchResponseDto.ResultDto> safeResults = Optional.of(searchResponseDto)
+        List<SearchResponseDto.ResultDto> safeResults = Optional.ofNullable(searchResponseDto)
                 .map(SearchResponseDto::data)
                 .map(SearchResponseDto.DataDto::search)
                 .map(SearchResponseDto.SearchDto::results)
@@ -53,7 +53,7 @@ public class ItemService {
 
         String priceStr = isCurrentPrice ? priceDto.currentPrice() : priceDto.basePrice();
         if (priceStr == null || priceStr.trim().isEmpty() || priceStr.equalsIgnoreCase("Grátis")) {
-            return BigDecimal.ZERO;
+            return new BigDecimal("0.00");
         }
 
         String cleanPrice = priceStr.replace("€", "").replace(",", ".").trim();
