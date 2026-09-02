@@ -162,7 +162,7 @@ public class ItemServiceTest {
 
         Item firstItem = actualResults.getFirst();
         assertEquals("4", firstItem.getId());
-        assertEquals(new BigDecimal("0"), firstItem.getBasePrice());
-        assertEquals(new BigDecimal("0"), firstItem.getCurrentPrice());
+        assertEquals(new BigDecimal("0.00"), firstItem.getBasePrice());
+        assertEquals(new BigDecimal("0.00"), firstItem.getCurrentPrice());
     }
 }
