@@ -48,7 +48,7 @@ public class ItemService {
 
     private BigDecimal parsePrice(SearchResponseDto.PriceDto priceDto, boolean isCurrentPrice) {
         if (priceDto == null) {
-            return BigDecimal.ZERO;
+            return new BigDecimal("0.00");
         }
 
         String priceStr = isCurrentPrice ? priceDto.currentPrice() : priceDto.basePrice();
