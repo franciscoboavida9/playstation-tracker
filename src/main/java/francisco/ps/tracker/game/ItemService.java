@@ -59,4 +59,9 @@ public class ItemService {
         String cleanPrice = priceStr.replace("€", "").replace(",", ".").trim();
         return new BigDecimal(cleanPrice);
     }
+
+    public Item searchById(String itemId) {
+        // todo
+        return null;
+    }
 }

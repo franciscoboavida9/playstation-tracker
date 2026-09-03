@@ -23,14 +23,6 @@ public class SonyStoreClient {
             "persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256" +
             "Hash%22%3A%224df6284f982e57bec70f23c77e2c219dc792eb19af7fb3d3a81767aa3f1958aa%22%7D%7D";
 
-    // Uses Sony's GraphQL persisted query hash
-    private static final String gameUrl = "https://web.np.playstation.com/api/graphql/v1/" +
-            "op?operationName=productRetrieveForUpsellWithCtas&variables=%7B%22" +
-            "productId%22%3A%22%s%22%7D&" +
-            "extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256" +
-            "Hash%22%3A%22a3674adcab1c43cc5847002da67e12a2d138f3ad9dc67dd362452220ea492b26%22%7D%7D";
-
-
     private final RestClient restClient;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
