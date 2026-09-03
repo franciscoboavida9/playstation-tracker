@@ -73,4 +73,22 @@ public class TrackerService {
         Tracker newTracker = new Tracker(chat, item, trackerId, targetPrice, true, LocalDateTime.now());
         return trackerRepository.save(newTracker);
     }
+
+    /**
+     * Stops tracking an item for a chat.
+     * @param chatId The chat ID.
+     * @param itemId The store item ID.
+     */
+    public void untrack(Long chatId, String itemId) {
+        TrackerId trackerId = new TrackerId(chatId, itemId);
+        Tracker tracker = trackerRepository.findById(trackerId)
+                .orElseThrow(() -> new IllegalArgumentException("You are not tracking this game."));
+
+        if (!tracker.isActive()) {
+            throw new IllegalStateException("You are already not tracking this game.");
+        }
+
+        tracker.setActive(false);
+        trackerRepository.save(tracker);
+    }
 }
