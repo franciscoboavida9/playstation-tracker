@@ -130,9 +130,8 @@ public class SonyStoreClientTest {
         var results = response.data().productRetrieve().concept();
 
         assertEquals(1, results.products().size());
-        assertEquals("elden ring", results.title());
         assertEquals("1", results.products().getFirst().id());
-        assertEquals("elden ring ps4 and ps5", results.products().getFirst().editionName());
+        assertEquals("elden ring ps4 and ps5", results.products().getFirst().name());
         assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().basePrice());
         assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().currentPrice());
 
