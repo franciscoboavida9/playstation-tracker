@@ -1,5 +1,6 @@
 package francisco.ps.tracker.infrastructure.sony;
 
+import francisco.ps.tracker.infrastructure.sony.dto.ItemDetailsDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -22,6 +23,14 @@ public class SonyStoreClient {
             "pageSize%22%3A24%2C%22searchTerm%22%3A%22%s%22%7D&extensions=%7B%22" +
             "persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256" +
             "Hash%22%3A%224df6284f982e57bec70f23c77e2c219dc792eb19af7fb3d3a81767aa3f1958aa%22%7D%7D";
+
+    // Uses Sony's GraphQL persisted query hash
+    private static final String itemUrl = "https://web.np.playstation.com/api/graphql/v1/" +
+            "op?operationName=productRetrieveForUpsellWithCtas&variables=%7B%22" +
+            "productId%22%3A%22%s%22%7D&" +
+            "extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256" +
+            "Hash%22%3A%22a3674adcab1c43cc5847002da67e12a2d138f3ad9dc67dd362452220ea492b26%22%7D%7D";
+
 
     private final RestClient restClient;
 
@@ -62,11 +71,19 @@ public class SonyStoreClient {
 
     /**
      * Searches the PlayStation Store for games matching the provided search term.
-     *
      * @param search The user's input.
      * @return A SearchResponseDto containing the list of matching games and editions.
      */
     public SearchResponseDto searchResponse(String search) {
         return fetchFromSony(search, searchUrl, SearchResponseDto.class);
+    }
+
+    /**
+     * Fetches detailed information for a specific PlayStation Store item.
+     * @param id The unique identifier of the item in the Sony store.
+     * @return An ItemDetailsDto containing the detailed information for the item.
+     */
+    public ItemDetailsDto itemDetails(String id) {
+        return fetchFromSony(id, itemUrl, ItemDetailsDto.class);
     }
 }
