@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class TrackerService {
@@ -90,5 +92,14 @@ public class TrackerService {
 
         tracker.setActive(false);
         trackerRepository.save(tracker);
+    }
+
+    /**
+     * Fetches all the games currently being tracked by a specific user
+     * @param chatId The chat ID.
+     * @return The list of games tracked by the specific user.
+     */
+    public List<Tracker> wishlist(Long chatId) {
+        return trackerRepository.findByChatIdAndIsActiveTrue(chatId);
     }
 }
