@@ -21,14 +21,13 @@ public record ItemDetailsDto(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ConceptDto (
-            @JsonProperty("name") String title,
             List<ProductDto> products
     ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ProductDto (
             String id,
-            @JsonProperty("name") String editionName,
+            String name,
             List<WebCtaDto> webctas
     ) {}
 
