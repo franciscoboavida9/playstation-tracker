@@ -64,7 +64,6 @@ public class ItemService {
     public Item searchById(String itemId) {
         ItemDetailsDto itemDetailsDto = sonyStoreClient.itemDetails(itemId);
 
-        // Get the first product safely
         ItemDetailsDto.ProductDto product = Optional.ofNullable(itemDetailsDto)
                 .map(ItemDetailsDto::data)
                 .map(ItemDetailsDto.DataDto::productRetrieve)
@@ -78,7 +77,6 @@ public class ItemService {
             return null;
         }
 
-        // Extract price cleanly (similar to how you extract safe lists)
         ItemDetailsDto.PriceDto price = Optional.ofNullable(product.webctas())
                 .filter(webctas -> !webctas.isEmpty())
                 .map(List::getFirst)
@@ -87,8 +85,6 @@ public class ItemService {
 
         String id = product.id();
         String name = product.name();
-
-        // Now this matches your clean style
         BigDecimal basePrice = parsePrice(price != null ? price.basePrice() : null, false);
         BigDecimal currentPrice = parsePrice(price != null ? price.currentPrice() : null, true);
 
