@@ -7,27 +7,55 @@ import francisco.ps.tracker.game.ItemRepository;
 import francisco.ps.tracker.game.ItemService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class TrackerService {
+    private final TrackerRepository trackerRepository;
     private final ChatRepository chatRepository;
     private final ItemRepository itemRepository;
     private final ItemService itemService;
 
-    public TrackerService(ChatRepository chatRepository, ItemRepository itemRepository, ItemService itemService) {
+    public TrackerService(TrackerRepository trackerRepository, ChatRepository chatRepository,
+                          ItemRepository itemRepository, ItemService itemService) {
+        this.trackerRepository = trackerRepository;
         this.chatRepository = chatRepository;
         this.itemRepository = itemRepository;
         this.itemService = itemService;
     }
 
+    /**
+     * Starts tracking an item for a chat, creating or reactivating the tracker as needed.
+     * @param chatId   The chat ID.
+     * @param chatType The type of chat.
+     * @param itemId   The store item ID.
+     * @return The saved Tracker.
+     */
     public Tracker track(Long chatId, String chatType, String itemId) {
+        // Check if tracker already exists to prevent spam
+        TrackerId trackerId = new TrackerId(chatId, itemId);
+        Tracker existingTracker = trackerRepository.findById(trackerId).orElse(null);
+        if (existingTracker != null) {
+            if (existingTracker.isActive()) {
+                throw new IllegalStateException("You are already tracking this game!");
+            } else {
+                // The user is re-tracking a game they previously untracked!
+                existingTracker.setActive(true);
+                existingTracker.setTargetPrice(
+                        existingTracker.getItem().getCurrentPrice().subtract(new BigDecimal("0.01")));
+                return trackerRepository.save(existingTracker);
+            }
+        }
+
         // Chat does not exist in the database
         Chat chat = chatRepository.findById(chatId).orElse(null);
         if (chat == null) {
             // Save chat to the database
             chat = new Chat(chatId, chatType, LocalDateTime.now());
-            chatRepository.save(chat);
+            chat = chatRepository.save(chat);
         }
 
         // Item still not exists in the database
@@ -43,7 +71,35 @@ public class TrackerService {
             item = itemRepository.save(item);
         }
 
+        BigDecimal targetPrice = item.getCurrentPrice().subtract(new BigDecimal("0.01"));
+        Tracker newTracker = new Tracker(chat, item, trackerId, targetPrice, true, LocalDateTime.now());
+        return trackerRepository.save(newTracker);
+    }
 
-        return null;
+    /**
+     * Stops tracking an item for a chat.
+     * @param chatId The chat ID.
+     * @param itemId The store item ID.
+     */
+    public void untrack(Long chatId, String itemId) {
+        TrackerId trackerId = new TrackerId(chatId, itemId);
+        Tracker tracker = trackerRepository.findById(trackerId)
+                .orElseThrow(() -> new IllegalArgumentException("You are not tracking this game."));
+
+        if (!tracker.isActive()) {
+            throw new IllegalStateException("You are already not tracking this game.");
+        }
+
+        tracker.setActive(false);
+        trackerRepository.save(tracker);
+    }
+
+    /**
+     * Fetches all the games currently being tracked by a specific user
+     * @param chatId The chat ID.
+     * @return The list of games tracked by the specific user.
+     */
+    public List<Tracker> wishlist(Long chatId) {
+        return trackerRepository.findByChatIdAndIsActiveTrue(chatId);
     }
 }

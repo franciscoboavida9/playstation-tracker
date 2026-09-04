@@ -1,6 +1,7 @@
 package francisco.ps.tracker.game;
 
 import francisco.ps.tracker.infrastructure.sony.SonyStoreClient;
+import francisco.ps.tracker.infrastructure.sony.dto.ItemDetailsDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.springframework.stereotype.Service;
 
@@ -37,8 +38,8 @@ public class ItemService {
         for (SearchResponseDto.ResultDto search : safeResults) {
             String id = search.id();
             String name = search.name();
-            BigDecimal basePrice = parsePrice(search.price(), false);
-            BigDecimal currentPrice = parsePrice(search.price(), true);
+            BigDecimal basePrice = parsePrice(search.price().basePrice(), false);
+            BigDecimal currentPrice = parsePrice(search.price().currentPrice(), true);
 
             results.add(new Item(id, name, basePrice, currentPrice));
         }
@@ -46,12 +47,7 @@ public class ItemService {
         return results;
     }
 
-    private BigDecimal parsePrice(SearchResponseDto.PriceDto priceDto, boolean isCurrentPrice) {
-        if (priceDto == null) {
-            return new BigDecimal("0.00");
-        }
-
-        String priceStr = isCurrentPrice ? priceDto.currentPrice() : priceDto.basePrice();
+    private BigDecimal parsePrice(String priceStr, boolean isCurrentPrice) {
         if (priceStr == null || priceStr.trim().isEmpty() || priceStr.equalsIgnoreCase("Grátis")) {
             return new BigDecimal("0.00");
         }
@@ -60,8 +56,38 @@ public class ItemService {
         return new BigDecimal(cleanPrice);
     }
 
+    /**
+     * Fetches item details from the Sony Store and returns the parsed Item object.
+     * @param itemId The unique identifier of the item.
+     * @return An Item containing the details of the product.
+     */
     public Item searchById(String itemId) {
-        // todo
-        return null;
+        ItemDetailsDto itemDetailsDto = sonyStoreClient.itemDetails(itemId);
+
+        ItemDetailsDto.ProductDto product = Optional.ofNullable(itemDetailsDto)
+                .map(ItemDetailsDto::data)
+                .map(ItemDetailsDto.DataDto::productRetrieve)
+                .map(ItemDetailsDto.ProductRetrieveDto::concept)
+                .map(ItemDetailsDto.ConceptDto::products)
+                .filter(products -> !products.isEmpty())
+                .map(List::getFirst)
+                .orElse(null);
+
+        if (product == null) {
+            return null;
+        }
+
+        ItemDetailsDto.PriceDto price = Optional.ofNullable(product.webctas())
+                .filter(webctas -> !webctas.isEmpty())
+                .map(List::getFirst)
+                .map(ItemDetailsDto.WebCtaDto::price)
+                .orElse(null);
+
+        String id = product.id();
+        String name = product.name();
+        BigDecimal basePrice = parsePrice(price != null ? price.basePrice() : null, false);
+        BigDecimal currentPrice = parsePrice(price != null ? price.currentPrice() : null, true);
+
+        return new Item(id, name, basePrice, currentPrice);
     }
 }
