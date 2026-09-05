@@ -56,7 +56,7 @@ public class TrackerServiceTrackTest {
 
         // Act and Assert
         assertThatThrownBy(() -> trackerService.track(chatId, chatType, itemId))
-                .isInstanceOf(IllegalStateException.class) // <--- Make sure this matches the expected exception!
+                .isInstanceOf(IllegalStateException.class) //
                 .hasMessage("You are already tracking this game!");
     }
 
