@@ -90,8 +90,12 @@
             <artifactId>spring-boot-restclient-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots-spring-boot-starter</artifactId>
+            <version>6.9.7.1</version>
+        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
