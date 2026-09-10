@@ -26,7 +26,7 @@ public class StartCommandHandler implements CommandHandler {
 
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
-                .text("👋 Welcome to PS Tracker!\n\nI track PlayStation Store discounts and ping you the moment prices drop.\n\nTry sending /search to find a game!")
+                .text("👋 Welcome to PS Tracker!\n\nI track PlayStation Store discounts and alert you the moment prices drop.\n\nTry sending /search to find a game!")
                 .build();
 
         try {
