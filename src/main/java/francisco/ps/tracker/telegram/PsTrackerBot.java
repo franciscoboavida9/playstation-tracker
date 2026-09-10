@@ -14,10 +14,14 @@ public class PsTrackerBot implements SpringLongPollingBot, LongPollingSingleThre
 
     private final TelegramClient telegramClient;
     private final String botToken;
+    private final CommandDispatcher dispatcher;
 
-    public PsTrackerBot(@Value("${telegram.bot.token}") String botToken) {
+    public PsTrackerBot(
+            @Value("${telegram.bot.token}") String botToken,
+            CommandDispatcher dispatcher) {
         this.botToken = botToken;
         this.telegramClient = new OkHttpTelegramClient(getBotToken());
+        this.dispatcher = dispatcher;
     }
 
     @Override
@@ -32,10 +36,6 @@ public class PsTrackerBot implements SpringLongPollingBot, LongPollingSingleThre
 
     @Override
     public void consume(Update update) {
-        System.out.println("Received an update from Telegram!");
-
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            System.out.println("User typed: " + update.getMessage().getText());
-        }
+        dispatcher.dispatch(update, telegramClient);
     }
 }
