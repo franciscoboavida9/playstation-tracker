@@ -34,9 +34,8 @@ public class SonyStoreClient {
 
     private final RestClient restClient;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    public SonyStoreClient(RestClient.Builder builder) {
-        this.restClient = builder.build();
+    public SonyStoreClient() {
+        this.restClient = RestClient.builder().build();
     }
 
     /**
