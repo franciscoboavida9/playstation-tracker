@@ -1,0 +1,75 @@
+package francisco.ps.tracker.telegram;
+
+import francisco.ps.tracker.tracker.TrackerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+@Component
+public class UntrackCommandHandler implements CommandHandler {
+
+    private final TrackerService trackerService;
+    private static final Logger log = LoggerFactory.getLogger(UntrackCommandHandler.class);
+
+    public UntrackCommandHandler(TrackerService trackerService) {
+        this.trackerService = trackerService;
+    }
+
+    @Override
+    public boolean supports(Update update) {
+        return update.hasCallbackQuery() &&
+                update.getCallbackQuery().getData().startsWith("untrack:");
+    }
+
+    @Override
+    public void handle(Update update, TelegramClient telegramClient) {
+        String callbackData = update.getCallbackQuery().getData();
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
+        int messageId = update.getCallbackQuery().getMessage().getMessageId();
+        String callbackQueryId = update.getCallbackQuery().getId();
+        String itemId = callbackData.substring(8);
+
+        try {
+            trackerService.untrack(chatId, itemId);
+
+            AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
+                    .callbackQueryId(callbackQueryId)
+                    .text("✅ Game removed from wishlist!")
+                    .showAlert(false) // Toast notification
+                    .build();
+            telegramClient.execute(answer);
+
+            EditMessageText editMessage = EditMessageText.builder()
+                    .chatId(chatId)
+                    .messageId(messageId)
+                    .text("❌ <i>This game is no longer being tracked.</i>")
+                    .parseMode("HTML")
+                    .build();
+            telegramClient.execute(editMessage);
+
+        } catch (TelegramApiException e) {
+            log.error("Failed to execute Telegram API call", e);
+        } catch (Exception e) {
+            log.error("Backend error while untracking item", e);
+            sendErrorAlert(callbackQueryId, telegramClient);
+        }
+    }
+
+    private void sendErrorAlert(String callbackQueryId, TelegramClient telegramClient) {
+        try {
+            AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
+                    .callbackQueryId(callbackQueryId)
+                    .text("⚠️ Could not remove game. Please try again.")
+                    .showAlert(true)
+                    .build();
+            telegramClient.execute(answer);
+        } catch (TelegramApiException ex) {
+            log.error("Failed to send error alert", ex);
+        }
+    }
+}
