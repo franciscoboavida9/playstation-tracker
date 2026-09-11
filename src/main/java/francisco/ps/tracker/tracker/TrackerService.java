@@ -6,10 +6,10 @@ import francisco.ps.tracker.game.Item;
 import francisco.ps.tracker.game.ItemRepository;
 import francisco.ps.tracker.game.ItemService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -99,6 +99,7 @@ public class TrackerService {
      * @param chatId The chat ID.
      * @return The list of games tracked by the specific user.
      */
+    @Transactional(readOnly = true)
     public List<Tracker> wishlist(Long chatId) {
         return trackerRepository.findByChatIdAndIsActiveTrue(chatId);
     }

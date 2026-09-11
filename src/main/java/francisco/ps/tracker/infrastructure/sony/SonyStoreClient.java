@@ -64,6 +64,9 @@ public class SonyStoreClient {
                 .uri(buildUrl(data, url))
                 // Required to bypass Apollo Server CSRF protection on Sony's backend
                 .header("apollo-require-preflight", "true")
+                // Forces the Sony pricing engine to use Portugal / Euros
+                .header("x-psn-store-locale-override", "pt-PT")
+                .header("Accept-Language", "pt-PT, pt;q=0.9")
                 .retrieve()
                 .body(responseType);
     }
