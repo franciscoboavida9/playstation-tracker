@@ -5,8 +5,8 @@ import francisco.ps.tracker.chat.ChatRepository;
 import francisco.ps.tracker.game.Item;
 import francisco.ps.tracker.game.ItemRepository;
 import francisco.ps.tracker.game.ItemService;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -34,6 +34,7 @@ public class TrackerService {
      * @param itemId   The store item ID.
      * @return The saved Tracker.
      */
+    @Transactional
     public Tracker track(Long chatId, String chatType, String itemId) {
         // Check if tracker already exists to prevent spam
         TrackerId trackerId = new TrackerId(chatId, itemId);
@@ -42,7 +43,7 @@ public class TrackerService {
             if (existingTracker.isActive()) {
                 throw new IllegalStateException("You are already tracking this game!");
             } else {
-                // The user is re-tracking a game they previously untracked!
+                // The user is re-tracking a game they previously untracked
                 existingTracker.setActive(true);
                 existingTracker.setTargetPrice(
                         existingTracker.getItem().getCurrentPrice().subtract(new BigDecimal("0.01")));
@@ -99,7 +100,6 @@ public class TrackerService {
      * @param chatId The chat ID.
      * @return The list of games tracked by the specific user.
      */
-    @Transactional(readOnly = true)
     public List<Tracker> wishlist(Long chatId) {
         return trackerRepository.findByChatIdAndIsActiveTrue(chatId);
     }
