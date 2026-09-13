@@ -48,12 +48,22 @@ public class ItemService {
     }
 
     private BigDecimal parsePrice(String priceStr, boolean isCurrentPrice) {
-        if (priceStr == null || priceStr.trim().isEmpty() || priceStr.equalsIgnoreCase("Grátis")) {
+        if (priceStr == null || priceStr.trim().isEmpty()) {
             return new BigDecimal("0.00");
         }
 
-        String cleanPrice = priceStr.replace("€", "").replace(",", ".").trim();
-        return new BigDecimal(cleanPrice);
+        String cleanPrice = priceStr.replaceAll("[^\\d.,]", "");
+        cleanPrice = cleanPrice.replace(",", ".");
+        if (cleanPrice.isEmpty() || cleanPrice.equals(".")) {
+            return new BigDecimal("0.00");
+        }
+
+        try {
+            return new BigDecimal(cleanPrice);
+        } catch (NumberFormatException e) {
+            System.err.println("⚠️ Could not parse price! Original: '" + priceStr + "', Cleaned: '" + cleanPrice + "'");
+            return new BigDecimal("0.00");
+        }
     }
 
     /**
@@ -69,8 +79,10 @@ public class ItemService {
                 .map(ItemDetailsDto.DataDto::productRetrieve)
                 .map(ItemDetailsDto.ProductRetrieveDto::concept)
                 .map(ItemDetailsDto.ConceptDto::products)
-                .filter(products -> !products.isEmpty())
-                .map(List::getFirst)
+                .flatMap(products -> products.stream()
+                        .filter(p -> itemId.equals(p.id()))
+                        .findFirst()
+                        .or(() -> products.stream().findFirst())) // fallback if id differs
                 .orElse(null);
 
         if (product == null) {
