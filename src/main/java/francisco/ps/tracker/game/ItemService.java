@@ -61,7 +61,7 @@ public class ItemService {
         try {
             return new BigDecimal(cleanPrice);
         } catch (NumberFormatException e) {
-            System.err.println("⚠️ Could not parse price! Original: '" + priceStr + "', Cleaned: '" + cleanPrice + "'");
+            System.err.println("Could not parse price! Original: '" + priceStr + "', Cleaned: '" + cleanPrice + "'");
             return new BigDecimal("0.00");
         }
     }
@@ -82,7 +82,7 @@ public class ItemService {
                 .flatMap(products -> products.stream()
                         .filter(p -> itemId.equals(p.id()))
                         .findFirst()
-                        .or(() -> products.stream().findFirst())) // fallback if id differs
+                        .or(() -> products.stream().findFirst()))
                 .orElse(null);
 
         if (product == null) {
@@ -91,8 +91,12 @@ public class ItemService {
 
         ItemDetailsDto.PriceDto price = Optional.ofNullable(product.webctas())
                 .filter(webctas -> !webctas.isEmpty())
-                .map(List::getFirst)
-                .map(ItemDetailsDto.WebCtaDto::price)
+                .flatMap(webctas -> webctas.stream()
+                        .filter(cta -> cta.price() != null && !Boolean.TRUE.equals(cta.price().isTiedToSubscription()))
+                        .filter(cta -> cta.type() == null || !cta.type().startsWith("UPSELL"))
+                        .map(ItemDetailsDto.WebCtaDto::price)
+                        .findFirst()
+                        .or(() -> Optional.ofNullable(webctas.getFirst().price())))
                 .orElse(null);
 
         String id = product.id();

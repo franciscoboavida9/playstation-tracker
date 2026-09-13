@@ -33,12 +33,15 @@ public record ItemDetailsDto(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record WebCtaDto(
-            PriceDto price
+            PriceDto price,
+            String type
     ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record PriceDto(
+            String applicability,
             String basePrice,
-            @JsonProperty("discountedPrice") String currentPrice
+            @JsonProperty("discountedPrice") String currentPrice,
+            Boolean isTiedToSubscription
     ) {}
 }
