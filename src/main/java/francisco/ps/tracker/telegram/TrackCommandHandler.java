@@ -32,12 +32,16 @@ public class TrackCommandHandler implements CommandHandler {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         String chatType = update.getCallbackQuery().getMessage().getChat().getType();
         String callbackQueryId = update.getCallbackQuery().getId();
-
         String itemId = callbackData.substring(6);
+
+        // INFO: Announce the attempt
+        log.info("User {} attempting to track item: {}", chatId, itemId);
 
         try {
             trackerService.track(chatId, chatType, itemId);
 
+            // INFO: Success
+            log.info("Successfully tracked item {} for user {}", itemId, chatId);
             AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
                     .callbackQueryId(callbackQueryId)
                     .text("✅ Game added to your watchlist!")
@@ -51,26 +55,30 @@ public class TrackCommandHandler implements CommandHandler {
                     .build();
             telegramClient.execute(confirmation);
 
+        } catch (IllegalStateException e) {
+            // WARN: The user tried to track a game they already have
+            log.warn("User {} tried to track item {}, but it is already active.", chatId, itemId);
+            sendAlert(callbackQueryId, "⚠️ You are already tracking this game!", telegramClient);
         } catch (NumberFormatException e) {
             log.error("Invalid item ID format in callback data: {}", callbackData);
         } catch (TelegramApiException e) {
             log.error("Failed to execute Telegram API call", e);
         } catch (Exception e) {
             log.error("Backend error while tracking item", e);
-            sendErrorAlert(callbackQueryId, telegramClient);
+            sendAlert(callbackQueryId, "⚠️ Could not track game. Please try again later.", telegramClient);
         }
     }
 
-    private void sendErrorAlert(String callbackQueryId, TelegramClient telegramClient) {
+    private void sendAlert(String callbackQueryId, String text, TelegramClient telegramClient) {
         try {
             AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
                     .callbackQueryId(callbackQueryId)
-                    .text("⚠️ Could not track game. Is it already in your wishlist?")
+                    .text(text)
                     .showAlert(true)
                     .build();
             telegramClient.execute(answer);
         } catch (TelegramApiException ex) {
-            log.error("Failed to send error alert", ex);
+            log.error("Failed to send alert popup", ex);
         }
     }
 }

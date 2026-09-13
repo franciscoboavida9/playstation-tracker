@@ -6,6 +6,8 @@ import francisco.ps.tracker.game.Item;
 import francisco.ps.tracker.game.ItemRepository;
 import francisco.ps.tracker.game.ItemService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,6 +16,9 @@ import java.util.List;
 
 @Service
 public class TrackerService {
+
+    private static final Logger log = LoggerFactory.getLogger(TrackerService.class);
+
     private final TrackerRepository trackerRepository;
     private final ChatRepository chatRepository;
     private final ItemRepository itemRepository;
@@ -36,6 +41,8 @@ public class TrackerService {
      */
     @Transactional
     public Tracker track(Long chatId, String chatType, String itemId) {
+        log.debug("Processing track request for User: {} | Item: {}", chatId, itemId);
+
         // Check if tracker already exists to prevent spam
         TrackerId trackerId = new TrackerId(chatId, itemId);
         Tracker existingTracker = trackerRepository.findById(trackerId).orElse(null);
@@ -43,6 +50,7 @@ public class TrackerService {
             if (existingTracker.isActive()) {
                 throw new IllegalStateException("You are already tracking this game!");
             } else {
+                log.info("Reactivating previously untracked game {} for user {}", itemId, chatId);
                 // The user is re-tracking a game they previously untracked
                 existingTracker.setActive(true);
                 existingTracker.setTargetPrice(
@@ -55,6 +63,7 @@ public class TrackerService {
         Chat chat = chatRepository.findById(chatId).orElse(null);
         if (chat == null) {
             // Save chat to the database
+            log.debug("Creating new Chat record for user {}", chatId);
             chat = new Chat(chatId, chatType, LocalDateTime.now());
             chat = chatRepository.save(chat);
         }
@@ -62,9 +71,11 @@ public class TrackerService {
         // Item still not exists in the database
         Item item = itemRepository.findById(itemId).orElse(null);
         if (item == null) {
+            log.debug("Item {} not in DB. Fetching from Sony Store...", itemId);
             // Fetch item on the Store
             item = itemService.searchById(itemId);
             if (item == null) {
+                log.error("Failed to find Item {} on Sony Store!", itemId);
                 throw new IllegalArgumentException("Item could not be found on PlayStation Store.");
             }
 
@@ -74,6 +85,8 @@ public class TrackerService {
 
         BigDecimal targetPrice = item.getCurrentPrice().subtract(new BigDecimal("0.01"));
         Tracker newTracker = new Tracker(chat, item, trackerId, targetPrice, true, LocalDateTime.now());
+
+        log.info("Successfully created new tracker for User: {} | Item: {}", chatId, itemId);
         return trackerRepository.save(newTracker);
     }
 
@@ -83,6 +96,8 @@ public class TrackerService {
      * @param itemId The store item ID.
      */
     public void untrack(Long chatId, String itemId) {
+        log.debug("Processing untrack request for User: {} | Item: {}", chatId, itemId);
+
         TrackerId trackerId = new TrackerId(chatId, itemId);
         Tracker tracker = trackerRepository.findById(trackerId)
                 .orElseThrow(() -> new IllegalArgumentException("You are not tracking this game."));
@@ -93,6 +108,7 @@ public class TrackerService {
 
         tracker.setActive(false);
         trackerRepository.save(tracker);
+        log.info("Successfully untracked game {} for user {}", itemId, chatId);
     }
 
     /**
@@ -101,6 +117,7 @@ public class TrackerService {
      * @return The list of games tracked by the specific user.
      */
     public List<Tracker> wishlist(Long chatId) {
+        log.debug("Fetching wishlist for user {}", chatId);
         return trackerRepository.findByChatIdAndIsActiveTrue(chatId);
     }
 }

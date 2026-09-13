@@ -2,6 +2,8 @@ package francisco.ps.tracker.infrastructure.sony;
 
 import francisco.ps.tracker.infrastructure.sony.dto.ItemDetailsDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -16,6 +18,9 @@ import java.nio.charset.StandardCharsets;
  */
 @Component
 public class SonyStoreClient {
+
+    private static final Logger log = LoggerFactory.getLogger(SonyStoreClient.class);
+
     // Uses Sony's GraphQL persisted query hash
     private static final String searchUrl = "https://web.np.playstation.com/api/graphql/v1//" +
             "op?operationName=getSearchResults&variables=%7B%22countryCode%22%3A%22PT%22%2C%22" +
@@ -60,11 +65,14 @@ public class SonyStoreClient {
      * @return The populated response DTO.
      */
     private <T> T fetchFromSony(String data, String url, Class<T> responseType) {
+        URI requestUri = buildUrl(data, url);
+
+        log.info("Calling Sony GraphQL API for data: '{}'", data);
+        log.debug("Exact Request URI: {}", requestUri);
+
         return restClient.get()
-                .uri(buildUrl(data, url))
-                // Required to bypass Apollo Server CSRF protection on Sony's backend
+                .uri(requestUri)
                 .header("apollo-require-preflight", "true")
-                // Forces the Sony pricing engine to use Portugal / Euros
                 .header("x-psn-store-locale-override", "pt-PT")
                 .header("Accept-Language", "pt-PT, pt;q=0.9")
                 .retrieve()

@@ -23,6 +23,7 @@ public class StartCommandHandler implements CommandHandler {
     @Override
     public void handle(Update update, TelegramClient telegramClient) {
         long chatId = update.getMessage().getChatId();
+        log.info("User {} triggered /start command", chatId);
 
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)

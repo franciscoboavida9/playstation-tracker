@@ -37,9 +37,11 @@ public class WishlistCommandHandler implements CommandHandler {
     @Override
     public void handle(Update update, TelegramClient telegramClient) {
         long chatId = update.getMessage().getChatId();
+        log.info("User {} requested their wishlist", chatId);
 
         List<Tracker> trackers = trackerService.wishlist(chatId);
         if (trackers == null || trackers.isEmpty()) {
+            log.info("User {} has an empty wishlist", chatId);
             sendTextMessage(chatId, "📋 <b>Your wishlist is empty!</b>\n\nUse /search to find games and start tracking them.", telegramClient);
             return;
         }

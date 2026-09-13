@@ -41,16 +41,24 @@ public class SearchCommandHandler implements CommandHandler {
 
         String query = messageText.replaceFirst("^/search", "").trim();
         if (query.isEmpty()) {
+            // WARN: The user messed up the command
+            log.warn("User {} issued /search with no query.", chatId);
             sendTextMessage(chatId, "⚠️ Please provide a game name. Example:\n<code>/search Elden Ring</code>", telegramClient);
             return;
         }
 
+        // INFO: The user is searching for something
+        log.info("User {} searching for: '{}'", chatId, query);
         List<Item> items = itemService.search(query);
         if (items == null || items.isEmpty()) {
+            // INFO: The search returned nothing
+            log.info("No results found for query: '{}'", query);
             sendTextMessage(chatId, "🕵️‍♂️ No games found for <b>" + query + "</b>. Check your spelling or try another name!", telegramClient);
             return;
         }
 
+        // INFO: Successfully found games
+        log.info("Found {} results for query: '{}', sending to user {}", items.size(), query, chatId);
         int displayLimit = Math.min(items.size(), 3);
         for (int i = 0; i < displayLimit; i++) {
             sendFormattedItemMessage(chatId, items.get(i), telegramClient);

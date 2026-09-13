@@ -33,9 +33,11 @@ public class UntrackCommandHandler implements CommandHandler {
         int messageId = update.getCallbackQuery().getMessage().getMessageId();
         String callbackQueryId = update.getCallbackQuery().getId();
         String itemId = callbackData.substring(8);
+        log.info("User {} attempting to untrack item: {}", chatId, itemId);
 
         try {
             trackerService.untrack(chatId, itemId);
+            log.info("Successfully untracked item {} for user {}", itemId, chatId);
 
             AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
                     .callbackQueryId(callbackQueryId)

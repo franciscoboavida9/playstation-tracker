@@ -30,6 +30,7 @@ public class ItemService {
      * @return The list of results of the search.
      */
     public List<Item> search(String input) {
+        log.debug("Formatting search results for query: {}", input);
         SearchResponseDto searchResponseDto = sonyStoreClient.searchResponse(input);
         List<Item> results = new ArrayList<>();
 
@@ -48,7 +49,7 @@ public class ItemService {
             BigDecimal basePrice = parsePrice(priceObj != null ? priceObj.basePrice() : null);
             BigDecimal currentPrice = parsePrice(priceObj != null ? priceObj.currentPrice() : null);
             if (priceObj == null) {
-                 log.info("Skipping '{}' because it has no price data in the store.", name);
+                 log.debug("Skipping '{}' because it has no price data in the store.", name);
                  continue;
             }
 
@@ -72,7 +73,7 @@ public class ItemService {
         try {
             return new BigDecimal(cleanPrice);
         } catch (NumberFormatException e) {
-            System.err.println("Could not parse price! Original: '" + priceStr + "', Cleaned: '" + cleanPrice + "'");
+            log.error("Could not parse price! Original: '{}', Cleaned: '{}'", priceStr, cleanPrice);
             return new BigDecimal("0.00");
         }
     }
