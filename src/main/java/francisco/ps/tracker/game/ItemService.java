@@ -3,6 +3,8 @@ package francisco.ps.tracker.game;
 import francisco.ps.tracker.infrastructure.sony.SonyStoreClient;
 import francisco.ps.tracker.infrastructure.sony.dto.ItemDetailsDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,6 +15,9 @@ import java.util.Optional;
 
 @Service
 public class ItemService {
+
+    private static final Logger log = LoggerFactory.getLogger(ItemService.class);
+
     private final SonyStoreClient sonyStoreClient;
 
     public ItemService(SonyStoreClient sonyStoreClient) {
@@ -38,8 +43,14 @@ public class ItemService {
         for (SearchResponseDto.ResultDto search : safeResults) {
             String id = search.id();
             String name = search.name();
-            BigDecimal basePrice = parsePrice(search.price().basePrice(), false);
-            BigDecimal currentPrice = parsePrice(search.price().currentPrice(), true);
+
+            SearchResponseDto.PriceDto priceObj = search.price();
+            BigDecimal basePrice = parsePrice(priceObj != null ? priceObj.basePrice() : null);
+            BigDecimal currentPrice = parsePrice(priceObj != null ? priceObj.currentPrice() : null);
+            if (priceObj == null) {
+                 log.info("Skipping '{}' because it has no price data in the store.", name);
+                 continue;
+            }
 
             results.add(new Item(id, name, basePrice, currentPrice));
         }
@@ -47,7 +58,7 @@ public class ItemService {
         return results;
     }
 
-    private BigDecimal parsePrice(String priceStr, boolean isCurrentPrice) {
+    private BigDecimal parsePrice(String priceStr) {
         if (priceStr == null || priceStr.trim().isEmpty()) {
             return new BigDecimal("0.00");
         }
@@ -101,8 +112,10 @@ public class ItemService {
 
         String id = product.id();
         String name = product.name();
-        BigDecimal basePrice = parsePrice(price != null ? price.basePrice() : null, false);
-        BigDecimal currentPrice = parsePrice(price != null ? price.currentPrice() : null, true);
+        BigDecimal basePrice = parsePrice(price != null ? price.basePrice() : null);
+        BigDecimal currentPrice = parsePrice(price != null ? price.currentPrice() : null);
+
+        log.debug("Found Item: {} | Base: {} | Current: {}", name, basePrice, currentPrice);
 
         return new Item(id, name, basePrice, currentPrice);
     }
