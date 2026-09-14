@@ -132,7 +132,7 @@ URI encoding dynamically without duplicating massive GraphQL URL strings.
 3. **Business Logic Isolation (`TrackerServiceTest` and `ItemServiceTest`):** Uses Mockito and AssertJ to rigorously test
 edge cases (API null responses, spam tracking prevention, inactive tracker resurrection) entirely in memory without relying 
 on the database or network constraints.
-4. **Telegram Interface Isolation (`CommandDispatcherTest` and **Handlers**): **Uses Mockito to stub the `TelegramClient` and
+4. **Telegram Interface Isolation (`CommandDispatcherTest` and **Handlers**):** Uses Mockito to stub the `TelegramClient` and
 `Update` objects. Verifies that the `CommandDispatcher` correctly routes text commands and callback queries to the appropriate
 handlers, ensuring the bot formats and executes the expected API responses without making actual network calls to Telegram's 
 servers.
