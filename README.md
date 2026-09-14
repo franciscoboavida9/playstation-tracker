@@ -11,13 +11,26 @@ alert notifications to specific chat sessions.
 ---
 
 ## About the Project
-(todo)
+PS-Tracker abstracts the complexity of the undocumented Sony GraphQL API into a seamless Telegram Bot experience. 
+Users can search the PlayStation Store, add games to a wishlist, and instantly see active discounts directly within 
+their chat client, without needing to navigate the web store.
+
+---
+
+## How to Use
+Interact with the bot directly via Telegram using the following commands:
+* `/start` - Displays the welcome message and basic instructions.
+* `/search <game name>` - Queries the PlayStation store and returns the top 3 results with accurate pricing.
+* `/wishlist` - Retrieves your personal list of tracked games and their current discount status.
+* **Inline Buttons:** Use the interactive "Track Game" and "Stop Tracking" buttons attached to bot messages 
+to seamlessly manage your wishlist without typing.
 
 ---
 
 ## Built With
 * **Language:** Java 21
 * **Framework:** Spring Boot (Spring Data JPA, Validation, WebMVC, RestClient)
+* **Telegram API:** TelegramBots Long Polling
 * **Database:** PostgreSQL 15
 * **Persistence & ORM:** Hibernate ORM
 * **Testing Infrastructure:** JUnit 5, Testcontainers, AssertJ, MockRestServiceServer
@@ -36,10 +49,10 @@ business logic (e.g., specific `target_price` thresholds).
 * **Composite Primary Keys:** A user should only be able to track a specific item once. This uniqueness is guaranteed 
 at the database level using a composite key (`id_chat`, `id_item`) implemented via JPA's `@EmbeddedId` and mapped 
 cleanly using `@MapsId`.
-* **Financial Precision:** Floating-point math is notoriously dangerous for currency. All monetary values are strictly 
+* **Financial Precision:** Floating-point math is dangerous for currency so all monetary values are strictly 
 mapped to PostgreSQL's `numeric(5,2)` via Java's `BigDecimal` to ensure absolute precision when triggering price drop alerts.
 * **External ID Mapping:** Instead of relying on auto-generated sequences for users, the application directly 
-assigns Telegram's native `chat_id` as the Primary Key. This removes the need for expensive lookup queries during 
+assigns Telegram's native `chat_id` as the Primary Key. This removes the need for lookup queries during 
 webhook processing.
 
 ### Technical Improvements
@@ -53,6 +66,16 @@ webhook processing.
 
 ## Architecture & Design Decisions
 
+### Telegram Bot Integration
+* **Long Polling over Webhooks:** Opted for Long Polling for the MVP. It simplifies local development and 
+deployment by eliminating the need for exposed ports and reverse proxies (ngrok), while still providing real-time responsiveness.
+* **Command Dispatcher (Strategy Pattern):** Incoming Telegram updates are routed through a centralized `CommandDispatcher`. 
+This replaces `if/else` blocks with clean, isolated `CommandHandler` classes, making the addition of future commands frictionless.
+* **Stateless Callback Routing:** UI interactions (like clicking "Track Game") use Telegram's inline keyboards with 
+callback payloads (e.g., `track:<itemId>`). The dispatcher parses this data and routes it to the correct handler, 
+requiring zero session state in the application memory.
+
+### Domain & Business Logic
 * **Domain Simplification:** The domain model was simplified by merging `Game` and `Edition` into a single 
 `Item` entity. Since the PlayStation Store treats every SKU (Standard, Deluxe) as an individual product with its
 own ID, maintaining separate tables introduced unnecessary complexity and database joins.
@@ -92,7 +115,8 @@ francisco.ps.tracker
 ├── game/           # Core Domain: Item entity, Repositories, ItemService
 ├── chat/           # Core Domain: Chat mappings and types
 ├── tracker/        # Core Domain: Associative Entity, composite keys, TrackerService
-├── infrastructure/ # External Adapters: Sony API integration (SonyStoreClient, DTO records)
+├── telegram/       # Bot Interface: CommandDispatcher, Handlers, Bot config
+├── infrastructure/ # External Adapters: Sony API integration (SonyStoreClient, DTOs)
 ```
 
 ---
@@ -108,22 +132,8 @@ URI encoding dynamically without duplicating massive GraphQL URL strings.
 3. **Business Logic Isolation (`TrackerServiceTest` and `ItemServiceTest`):** Uses Mockito and AssertJ to rigorously test
 edge cases (API null responses, spam tracking prevention, inactive tracker resurrection) entirely in memory without relying 
 on the database or network constraints.
+4. **Telegram Interface Isolation (`CommandDispatcherTest` and **Handlers**): **Uses Mockito to stub the `TelegramClient` and
+`Update` objects. Verifies that the `CommandDispatcher` correctly routes text commands and callback queries to the appropriate
+handlers, ensuring the bot formats and executes the expected API responses without making actual network calls to Telegram's 
+servers.
 
-(todo)
-
----
-
-## Future Improvements
-* **Custom Target Prices:** Expand commands to allow users to set specific monetary thresholds instead of 
-defaulting to any discount.
-* **Scheduled Polling Engine:** Implement a `@Scheduled` background worker to batch-poll the Sony API and evaluate price drops 
-against stored targets.
-* **Improve UI:** Upgrade the Telegram interface with inline keyboards for paginated wishlist management,
-and attach official game cover images to search results and wishlist.
-* **Multi-Region Support:** Expand the client architecture to support dynamic locale parameters, allowing users to track prices 
-across different international PlayStation Store regions (e.g., US, UK, JP) instead of being locked to the PT store.
-
----
-
-## How to Run
-(todo)
