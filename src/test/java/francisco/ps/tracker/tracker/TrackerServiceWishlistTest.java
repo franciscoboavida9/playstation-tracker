@@ -35,7 +35,7 @@ class TrackerServiceWishlistTest {
         TrackerId trackerId = new TrackerId(chatId, "PPSA01234_00");
 
         Chat chat = new Chat(chatId, chatType, LocalDateTime.now());
-        Item item = new Item("PPSA01234_00", "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item item = new Item("PPSA01234_00", "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Tracker tracker = new Tracker(chat, item, trackerId, new BigDecimal("39.99"), true, LocalDateTime.now());
 
         Mockito.when(trackerRepository.findByChatIdAndIsActiveTrue(chatId))
@@ -75,10 +75,10 @@ class TrackerServiceWishlistTest {
 
         Chat chat = new Chat(chatId, chatType, LocalDateTime.now());
 
-        Item item1 = new Item("PPSA01234_00", "Game One", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item item1 = new Item("PPSA01234_00", "Game One", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Tracker tracker1 = new Tracker(chat, item1, new TrackerId(chatId, "PPSA01234_00"), new BigDecimal("39.99"), true, LocalDateTime.now());
 
-        Item item2 = new Item("PPSA05678_00", "Game Two", new BigDecimal("49.99"), new BigDecimal("29.99"));
+        Item item2 = new Item("PPSA05678_00", "Game Two", new BigDecimal("49.99"), new BigDecimal("29.99"), "http://example.com/cover.png");
         Tracker tracker2 = new Tracker(chat, item2, new TrackerId(chatId, "PPSA05678_00"), new BigDecimal("29.99"), true, LocalDateTime.now());
 
         Mockito.when(trackerRepository.findByChatIdAndIsActiveTrue(chatId))

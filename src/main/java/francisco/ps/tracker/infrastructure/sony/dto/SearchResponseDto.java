@@ -22,9 +22,16 @@ public record SearchResponseDto(
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ResultDto(
             String id,
+            List<MediaDto> media,
             String name,
             PriceDto price
     ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record MediaDto(
+            @JsonProperty("role") String imageRole,
+            @JsonProperty("url") String imageUrl
+    ) implements MediaInfo {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record PriceDto(

@@ -22,22 +22,20 @@ public class Item {
     private BigDecimal currentPrice;
     @Column(name = "base_price", precision = 5, scale = 2)
     private BigDecimal basePrice;
+    @Column(name = "cover_image")
+    private String coverImage;
 
     @OneToMany(mappedBy = "item")
     private List<Tracker> trackers = new ArrayList<>();
 
     protected Item() {}
 
-    public Item(String id, String name, BigDecimal basePrice, BigDecimal currentPrice) {
+    public Item(String id, String name, BigDecimal basePrice, BigDecimal currentPrice, String coverImage) {
         this.id = id;
         this.name = name;
         this.basePrice = basePrice;
         this.currentPrice = currentPrice;
-    }
-
-    public void addTracker(Tracker tracker) {
-        trackers.add(tracker);
-        tracker.setItem(this);
+        this.coverImage = coverImage;
     }
 
 }

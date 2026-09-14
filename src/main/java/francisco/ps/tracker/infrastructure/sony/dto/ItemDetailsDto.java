@@ -27,9 +27,16 @@ public record ItemDetailsDto(
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ProductDto (
             String id,
+            List<MediaDto> media,
             String name,
             List<WebCtaDto> webctas
     ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record MediaDto(
+            @JsonProperty("role") String imageRole,
+            @JsonProperty("url") String imageUrl
+    ) implements MediaInfo {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record WebCtaDto(

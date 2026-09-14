@@ -21,7 +21,8 @@ import static org.mockito.Mockito.*;
 class SearchCommandHandlerTest {
 
     private final ItemService itemService = mock(ItemService.class);
-    private final SearchCommandHandler handler = new SearchCommandHandler(itemService);
+    private final MessageFormatter messageFormatter = mock(MessageFormatter.class);
+    private final SearchCommandHandler handler = new SearchCommandHandler(itemService, messageFormatter);
     private final TelegramClient telegramClient = mock(TelegramClient.class);
 
     private Update createMockUpdate(String text, Long chatId) {
@@ -57,56 +58,33 @@ class SearchCommandHandlerTest {
     }
 
     @Test
-    void shouldSendUsageInstructionWhenQueryIsEmpty() throws TelegramApiException {
+    void shouldSendUsageInstructionWhenQueryIsEmpty() {
         Update update = createMockUpdate("/search", 12345L);
 
         handler.handle(update, telegramClient);
 
-        ArgumentCaptor<SendMessage> captor = ArgumentCaptor.forClass(SendMessage.class);
-        verify(telegramClient).execute(captor.capture());
-
-        assertThat(captor.getValue().getChatId()).isEqualTo("12345");
-        assertThat(captor.getValue().getText()).contains("Please provide a game name");
+        verify(messageFormatter).sendTextMessage(eq(12345L), contains("Please provide a game name"), eq(telegramClient));
     }
 
     @Test
-    void shouldSendNoGamesFoundMessageWhenServiceReturnsEmpty() throws TelegramApiException {
+    void shouldSendNoGamesFoundMessageWhenServiceReturnsEmpty() {
         Update update = createMockUpdate("/search UnknownGame", 12345L);
         when(itemService.search("UnknownGame")).thenReturn(Collections.emptyList());
 
         handler.handle(update, telegramClient);
 
-        ArgumentCaptor<SendMessage> captor = ArgumentCaptor.forClass(SendMessage.class);
-        verify(telegramClient).execute(captor.capture());
-
-        SendMessage capturedMessage = captor.getValue();
-        assertThat(capturedMessage.getChatId()).isEqualTo("12345");
-        assertThat(capturedMessage.getText()).contains("No games found");
+        verify(messageFormatter).sendTextMessage(eq(12345L), contains("No games found"), eq(telegramClient));
     }
 
     @Test
-    void shouldExecuteSendMessageOnHandleWithCorrectItemData() throws TelegramApiException {
+    void shouldExecuteSendMessageOnHandleWithCorrectItemData() {
         Update update = createMockUpdate("/search Elden Ring", 12345L);
 
-        Item mockItem = new Item("1L", "Elden Ring", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item mockItem = new Item("1L", "Elden Ring", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/image.png");
 
         when(itemService.search("Elden Ring")).thenReturn(List.of(mockItem));
-
         handler.handle(update, telegramClient);
 
-        ArgumentCaptor<SendMessage> captor = ArgumentCaptor.forClass(SendMessage.class);
-        verify(telegramClient, atLeastOnce()).execute(captor.capture());
-
-        SendMessage capturedMessage = captor.getValue();
-        assertThat(capturedMessage.getChatId()).isEqualTo("12345");
-        assertThat(capturedMessage.getText()).contains("Elden Ring");
-        assertThat(capturedMessage.getText()).contains("39.99");
-        assertThat(capturedMessage.getText()).contains("59.99");
-
-        // Inspect the keyboard and the callback payload
-        assertThat(capturedMessage.getReplyMarkup()).isInstanceOf(InlineKeyboardMarkup.class);
-        InlineKeyboardMarkup markup = (InlineKeyboardMarkup) capturedMessage.getReplyMarkup();
-        String payload = markup.getKeyboard().getFirst().getFirst().getCallbackData();
-        assertThat(payload).isEqualTo("track:1L");
+        verify(messageFormatter).sendItemMessage(12345L, mockItem, "➕ Track Game", "track:1L", telegramClient);
     }
 }

@@ -2,6 +2,7 @@ package francisco.ps.tracker.game;
 
 import francisco.ps.tracker.infrastructure.sony.SonyStoreClient;
 import francisco.ps.tracker.infrastructure.sony.dto.ItemDetailsDto;
+import francisco.ps.tracker.infrastructure.sony.dto.MediaInfo;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,17 +44,14 @@ public class ItemService {
 
         for (SearchResponseDto.ResultDto search : safeResults) {
             String id = search.id();
+            String coverImage = extractCoverImage(search.media());
             String name = search.name();
 
             SearchResponseDto.PriceDto priceObj = search.price();
             BigDecimal basePrice = parsePrice(priceObj != null ? priceObj.basePrice() : null);
             BigDecimal currentPrice = parsePrice(priceObj != null ? priceObj.currentPrice() : null);
-            if (priceObj == null) {
-                 log.debug("Skipping '{}' because it has no price data in the store.", name);
-                 continue;
-            }
 
-            results.add(new Item(id, name, basePrice, currentPrice));
+            results.add(new Item(id, name, basePrice, currentPrice, coverImage));
         }
 
         return results;
@@ -112,12 +110,25 @@ public class ItemService {
                 .orElse(null);
 
         String id = product.id();
+        String coverImage = extractCoverImage(product.media());
         String name = product.name();
         BigDecimal basePrice = parsePrice(price != null ? price.basePrice() : null);
         BigDecimal currentPrice = parsePrice(price != null ? price.currentPrice() : null);
 
         log.debug("Found Item: {} | Base: {} | Current: {}", name, basePrice, currentPrice);
 
-        return new Item(id, name, basePrice, currentPrice);
+        return new Item(id, name, basePrice, currentPrice, coverImage);
+    }
+
+    private String extractCoverImage(List<? extends MediaInfo> mediaList) {
+        if (mediaList == null || mediaList.isEmpty()) {
+            return null;
+        }
+
+        return mediaList.stream()
+                .filter(media -> "MASTER".equalsIgnoreCase(media.imageRole()))
+                .map(MediaInfo::imageUrl)
+                .findFirst()
+                .orElseGet(() -> mediaList.getLast().imageUrl());
     }
 }

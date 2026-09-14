@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,9 +31,9 @@ public class ItemServiceTest {
 
     @BeforeEach
     void setUp() {
-        firstTestItem = new Item("1", "ELDEN RING", BigDecimal.valueOf(59.99), BigDecimal.valueOf(39.99));
-        secondTestItem = new Item("2", "ELDEN RING NIGHTREIGN", BigDecimal.valueOf(39.99), BigDecimal.valueOf(39.99));
-        thirdTestItem = new Item("3", "Rocket League", new BigDecimal("0.00"), new BigDecimal("0.00"));
+        firstTestItem = new Item("1", "ELDEN RING", BigDecimal.valueOf(59.99), BigDecimal.valueOf(39.99), "http://example.com/cover.png");
+        secondTestItem = new Item("2", "ELDEN RING NIGHTREIGN", BigDecimal.valueOf(39.99), BigDecimal.valueOf(39.99), "http://example.com/cover.png");
+        thirdTestItem = new Item("3", "Rocket League", new BigDecimal("0.00"), new BigDecimal("0.00"), "http://example.com/cover.png");
     }
 
     @Test
@@ -40,7 +41,8 @@ public class ItemServiceTest {
     void search_ValidData() {
         // Arrange
         SearchResponseDto.PriceDto fakePrice = new SearchResponseDto.PriceDto("€59,99", "€39,99");
-        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("1", "ELDEN RING", fakePrice);
+        SearchResponseDto.MediaDto fakeMedia = new SearchResponseDto.MediaDto("MASTER", "http://example.com/cover.png");
+        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("1", List.of(fakeMedia), "ELDEN RING", fakePrice);
         SearchResponseDto.SearchDto fakeSearch = new SearchResponseDto.SearchDto(List.of(fakeResult));
         SearchResponseDto.DataDto fakeData = new SearchResponseDto.DataDto(fakeSearch);
         SearchResponseDto fakeResponse = new SearchResponseDto(fakeData);
@@ -64,9 +66,11 @@ public class ItemServiceTest {
     void search_MultipleValidData() {
         // Arrange
         SearchResponseDto.PriceDto fakePriceOne = new SearchResponseDto.PriceDto("€59,99", "€39,99");
-        SearchResponseDto.ResultDto fakeResultsOne = new SearchResponseDto.ResultDto("1", "ELDEN RING", fakePriceOne);
+        SearchResponseDto.MediaDto fakeMediaOne = new SearchResponseDto.MediaDto("MASTER", "http://example.com/cover.png");
+        SearchResponseDto.ResultDto fakeResultsOne = new SearchResponseDto.ResultDto("1", List.of(fakeMediaOne), "ELDEN RING", fakePriceOne);
         SearchResponseDto.PriceDto fakePriceTwo = new SearchResponseDto.PriceDto("€39,99", "€39,99");
-        SearchResponseDto.ResultDto fakeResultsTwo = new SearchResponseDto.ResultDto("2", "ELDEN RING NIGHTREIGN", fakePriceTwo);
+        SearchResponseDto.MediaDto fakeMediaTwo = new SearchResponseDto.MediaDto("MASTER", "http://example.com/cover.png");
+        SearchResponseDto.ResultDto fakeResultsTwo = new SearchResponseDto.ResultDto("2", List.of(fakeMediaTwo),"ELDEN RING NIGHTREIGN", fakePriceTwo);
         SearchResponseDto.SearchDto fakeSearch = new SearchResponseDto.SearchDto(List.of(fakeResultsOne, fakeResultsTwo));
         SearchResponseDto.DataDto fakeData = new SearchResponseDto.DataDto(fakeSearch);
         SearchResponseDto fakeResponse = new SearchResponseDto(fakeData);
@@ -125,7 +129,8 @@ public class ItemServiceTest {
     void search_GratisPrice() {
         // Arrange
         SearchResponseDto.PriceDto fakePrice = new SearchResponseDto.PriceDto("Grátis", "Grátis");
-        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("3", "Rocket League", fakePrice);
+        SearchResponseDto.MediaDto fakeMedia = new SearchResponseDto.MediaDto("MASTER", "http://example.com/cover.png");
+        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("3", List.of(fakeMedia), "Rocket League", fakePrice);
         SearchResponseDto.SearchDto fakeSearch = new SearchResponseDto.SearchDto(List.of(fakeResult));
         SearchResponseDto.DataDto fakeData = new SearchResponseDto.DataDto(fakeSearch);
         SearchResponseDto fakeResponse = new SearchResponseDto(fakeData);
@@ -148,7 +153,8 @@ public class ItemServiceTest {
     @DisplayName("Should map prices to 0.00 when the price object is completely missing")
     void search_MissingPriceObject() {
         // Arrange
-        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("4", "No Price Game", null);
+        SearchResponseDto.MediaDto fakeMedia = new SearchResponseDto.MediaDto("MASTER", "http://example.com/cover.png");
+        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("4", List.of(fakeMedia), "No Price Game", null);
         SearchResponseDto.SearchDto fakeSearch = new SearchResponseDto.SearchDto(List.of(fakeResult));
         SearchResponseDto.DataDto fakeData = new SearchResponseDto.DataDto(fakeSearch);
         SearchResponseDto fakeResponse = new SearchResponseDto(fakeData);
@@ -164,5 +170,57 @@ public class ItemServiceTest {
         assertEquals("4", firstItem.getId());
         assertEquals(new BigDecimal("0.00"), firstItem.getBasePrice());
         assertEquals(new BigDecimal("0.00"), firstItem.getCurrentPrice());
+    }
+
+    @Test
+    @DisplayName("Should extract MASTER image when multiple media roles exist")
+    void search_ExtractsMasterImage() {
+        SearchResponseDto.PriceDto fakePrice = new SearchResponseDto.PriceDto("€59,99", "€39,99");
+        SearchResponseDto.MediaDto bgMedia = new SearchResponseDto.MediaDto("BACKGROUND", "http://example.com/bg.png");
+        SearchResponseDto.MediaDto masterMedia = new SearchResponseDto.MediaDto("MASTER", "http://example.com/master.png");
+        SearchResponseDto.MediaDto logoMedia = new SearchResponseDto.MediaDto("LOGO", "http://example.com/logo.png");
+
+        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("1", List.of(bgMedia, masterMedia, logoMedia), "Game", fakePrice);
+        SearchResponseDto.SearchDto fakeSearch = new SearchResponseDto.SearchDto(List.of(fakeResult));
+        SearchResponseDto fakeResponse = new SearchResponseDto(new SearchResponseDto.DataDto(fakeSearch));
+
+        when(sonyStoreClient.searchResponse("game")).thenReturn(fakeResponse);
+
+        List<Item> actualResults = itemService.search("game");
+
+        assertEquals("http://example.com/master.png", actualResults.getFirst().getCoverImage());
+    }
+
+    @Test
+    @DisplayName("Should fallback to the last image when MASTER role is missing")
+    void search_ExtractsLastImageWhenMasterMissing() {
+        SearchResponseDto.PriceDto fakePrice = new SearchResponseDto.PriceDto("€59,99", "€39,99");
+        SearchResponseDto.MediaDto bgMedia = new SearchResponseDto.MediaDto("BACKGROUND", "http://example.com/bg.png");
+        SearchResponseDto.MediaDto logoMedia = new SearchResponseDto.MediaDto("LOGO", "http://example.com/last_image.png");
+
+        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("1", List.of(bgMedia, logoMedia), "Game", fakePrice);
+        SearchResponseDto.SearchDto fakeSearch = new SearchResponseDto.SearchDto(List.of(fakeResult));
+        SearchResponseDto fakeResponse = new SearchResponseDto(new SearchResponseDto.DataDto(fakeSearch));
+
+        when(sonyStoreClient.searchResponse("game")).thenReturn(fakeResponse);
+
+        List<Item> actualResults = itemService.search("game");
+
+        assertEquals("http://example.com/last_image.png", actualResults.getFirst().getCoverImage());
+    }
+
+    @Test
+    @DisplayName("Should return null coverImage when media list is empty or null")
+    void search_HandlesEmptyMedia() {
+        SearchResponseDto.PriceDto fakePrice = new SearchResponseDto.PriceDto("€59,99", "€39,99");
+        SearchResponseDto.ResultDto fakeResult = new SearchResponseDto.ResultDto("1", null, "Game", fakePrice);
+        SearchResponseDto.SearchDto fakeSearch = new SearchResponseDto.SearchDto(List.of(fakeResult));
+        SearchResponseDto fakeResponse = new SearchResponseDto(new SearchResponseDto.DataDto(fakeSearch));
+
+        when(sonyStoreClient.searchResponse("game")).thenReturn(fakeResponse);
+
+        List<Item> actualResults = itemService.search("game");
+
+        assertNull(actualResults.getFirst().getCoverImage());
     }
 }

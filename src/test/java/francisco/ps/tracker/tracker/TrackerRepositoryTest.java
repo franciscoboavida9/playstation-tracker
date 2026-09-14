@@ -47,7 +47,8 @@ class TrackerRepositoryTest {
         Item item = itemRepository.save(new Item(
                 "1", "Standard Edition",
                 new BigDecimal("59.99"),
-                new BigDecimal("59.99")
+                new BigDecimal("59.99"),
+                "http://example.com/cover.png"
         ));
 
         Chat chat = chatRepository.save(new Chat(123456789L, "private", LocalDateTime.now()));

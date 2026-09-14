@@ -51,13 +51,19 @@ public class SonyStoreClientTest {
                           "price": {
                             "basePrice": "59.99",
                             "discountedPrice": "39.99"
-                          }
+                          }, \s
+                          "media": [
+                            {
+                              "role": "MASTER",
+                              "url": "http://example.com/cover.png"
+                            }
+                          ]
                         }
                       ]
                     }
                   }
                 }
-                """, expectedId, expectedName);
+               \s""", expectedId, expectedName);
 
         String expectedEncodedSearch = URLEncoder.encode(search, StandardCharsets.UTF_8);
 
@@ -80,6 +86,10 @@ public class SonyStoreClientTest {
         assertNotNull(results.getFirst().price());
         assertEquals("59.99", results.getFirst().price().basePrice());
         assertEquals("39.99", results.getFirst().price().currentPrice());
+
+        assertNotNull(results.getFirst().media());
+        assertEquals("MASTER", results.getFirst().media().getFirst().imageRole());
+        assertEquals("http://example.com/cover.png", results.getFirst().media().getFirst().imageUrl());
 
         mockServer.verify();
     }
@@ -105,6 +115,12 @@ public class SonyStoreClientTest {
                                   "basePrice": "59.99",
                                   "discountedPrice": "59.99"
                                 }
+                              }
+                            ],
+                            "media": [
+                              {
+                                "role": "MASTER",
+                                "url": "http://example.com/cover.png"
                               }
                             ]
                           }
@@ -134,6 +150,9 @@ public class SonyStoreClientTest {
         assertEquals("elden ring ps4 and ps5", results.products().getFirst().name());
         assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().basePrice());
         assertEquals("59.99", results.products().getFirst().webctas().getFirst().price().currentPrice());
+        assertNotNull(results.products().getFirst().media());
+        assertEquals("MASTER", results.products().getFirst().media().getFirst().imageRole());
+        assertEquals("http://example.com/cover.png", results.products().getFirst().media().getFirst().imageUrl());
 
         mockServer.verify();
     }

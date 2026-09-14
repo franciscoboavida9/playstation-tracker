@@ -5,12 +5,7 @@ import francisco.ps.tracker.game.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
@@ -19,11 +14,13 @@ import java.util.List;
 public class SearchCommandHandler implements CommandHandler {
 
     private final ItemService itemService;
+    private final MessageFormatter messageFormatter;
 
     private static final Logger log = LoggerFactory.getLogger(SearchCommandHandler.class);
 
-    public SearchCommandHandler(ItemService itemService) {
+    public SearchCommandHandler(ItemService itemService, MessageFormatter messageFormatter) {
         this.itemService = itemService;
+        this.messageFormatter = messageFormatter;
     }
 
     @Override
@@ -41,80 +38,30 @@ public class SearchCommandHandler implements CommandHandler {
 
         String query = messageText.replaceFirst("^/search", "").trim();
         if (query.isEmpty()) {
-            // WARN: The user messed up the command
             log.warn("User {} issued /search with no query.", chatId);
-            sendTextMessage(chatId, "⚠️ Please provide a game name. Example:\n<code>/search Elden Ring</code>", telegramClient);
+            messageFormatter.sendTextMessage(chatId, "⚠️ Please provide a game name. Example:\n<code>/search Elden Ring</code>", telegramClient);
             return;
         }
 
-        // INFO: The user is searching for something
         log.info("User {} searching for: '{}'", chatId, query);
         List<Item> items = itemService.search(query);
+
         if (items == null || items.isEmpty()) {
-            // INFO: The search returned nothing
             log.info("No results found for query: '{}'", query);
-            sendTextMessage(chatId, "🕵️‍♂️ No games found for <b>" + query + "</b>. Check your spelling or try another name!", telegramClient);
+            messageFormatter.sendTextMessage(chatId, "🕵️‍♂️ No games found for <b>" + query + "</b>. Check your spelling or try another name!", telegramClient);
             return;
         }
 
-        // INFO: Successfully found games
         log.info("Found {} results for query: '{}', sending to user {}", items.size(), query, chatId);
         int displayLimit = Math.min(items.size(), 3);
+
         for (int i = 0; i < displayLimit; i++) {
-            sendFormattedItemMessage(chatId, items.get(i), telegramClient);
+            Item item = items.get(i);
+            messageFormatter.sendItemMessage(chatId, item, "➕ Track Game", "track:" + item.getId(), telegramClient);
         }
 
         if (items.size() > 3) {
-            sendTextMessage(chatId, "<i>Showing top 3 results. Be more specific if you don't see your game!</i>", telegramClient);
-        }
-
-    }
-
-    private void sendTextMessage(long chatId, String text, TelegramClient telegramClient) {
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .parseMode("HTML")
-                .build();
-        try {
-            telegramClient.execute(message);
-        } catch (TelegramApiException e) {
-            log.error("Failed to send search message", e);
-        }
-    }
-
-    private void sendFormattedItemMessage(long chatId, Item item, TelegramClient telegramClient) {
-        StringBuilder text = new StringBuilder();
-        text.append("🎮 <b>").append(item.getName()).append("</b>\n\n");
-
-        if (item.getCurrentPrice().compareTo(item.getBasePrice()) < 0) {
-            text.append("🔥 <b>ON SALE:</b> €").append(item.getCurrentPrice()).append("\n");
-            text.append("<s>Regular Price: €").append(item.getBasePrice()).append("</s>");
-        } else {
-            text.append("💰 Price: €").append(item.getCurrentPrice());
-        }
-
-        InlineKeyboardButton trackButton = InlineKeyboardButton.builder()
-                .text("➕ Track Game")
-                .callbackData("track:" + item.getId())
-                .build();
-
-        InlineKeyboardRow row = new InlineKeyboardRow(trackButton);
-        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
-                .keyboardRow(row)
-                .build();
-
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text(text.toString())
-                .parseMode("HTML")
-                .replyMarkup(keyboard)
-                .build();
-
-        try {
-            telegramClient.execute(message);
-        } catch (TelegramApiException e) {
-            log.error("Failed to send search message", e);
+            messageFormatter.sendTextMessage(chatId, "<i>Showing top 3 results. Be more specific if you don't see your game!</i>", telegramClient);
         }
     }
 }

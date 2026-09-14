@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -20,11 +22,13 @@ import java.util.List;
 public class WishlistCommandHandler implements CommandHandler {
 
     private final TrackerService trackerService;
+    private final MessageFormatter messageFormatter;
 
     private static final Logger log = LoggerFactory.getLogger(WishlistCommandHandler.class);
 
-    public WishlistCommandHandler(TrackerService trackerService) {
+    public WishlistCommandHandler(TrackerService trackerService, MessageFormatter messageFormatter) {
         this.trackerService = trackerService;
+        this.messageFormatter = messageFormatter;
     }
 
     @Override
@@ -40,64 +44,18 @@ public class WishlistCommandHandler implements CommandHandler {
         log.info("User {} requested their wishlist", chatId);
 
         List<Tracker> trackers = trackerService.wishlist(chatId);
+
         if (trackers == null || trackers.isEmpty()) {
             log.info("User {} has an empty wishlist", chatId);
-            sendTextMessage(chatId, "📋 <b>Your wishlist is empty!</b>\n\nUse /search to find games and start tracking them.", telegramClient);
+            messageFormatter.sendTextMessage(chatId, "📋 <b>Your wishlist is empty!</b>\n\nUse /search to find games and start tracking them.", telegramClient);
             return;
         }
 
-        sendTextMessage(chatId, "📋 <b>Here are your tracked games:</b>", telegramClient);
+        messageFormatter.sendTextMessage(chatId, "📋 <b>Here are your tracked games:</b>", telegramClient);
 
         for (Tracker tracker : trackers) {
             Item item = tracker.getItem();
-            sendFormattedItemMessage(chatId, item, telegramClient);
-        }
-    }
-
-    private void sendTextMessage(long chatId, String text, TelegramClient telegramClient) {
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .parseMode("HTML")
-                .build();
-        try {
-            telegramClient.execute(message);
-        } catch (TelegramApiException e) {
-            log.error("Failed to send simple text message", e);
-        }
-    }
-
-    private void sendFormattedItemMessage(long chatId, Item item, TelegramClient telegramClient) {
-        StringBuilder text = new StringBuilder();
-        text.append("🎮 <b>").append(item.getName()).append("</b>\n\n");
-
-        if (item.getCurrentPrice().compareTo(item.getBasePrice()) < 0) {
-            text.append("🔥 <b>ON SALE:</b> €").append(item.getCurrentPrice()).append("\n");
-            text.append("<s>Regular: €").append(item.getBasePrice()).append("</s>");
-        } else {
-            text.append("💰 Current Price: €").append(item.getCurrentPrice());
-        }
-
-        InlineKeyboardButton untrackButton = InlineKeyboardButton.builder()
-                .text("❌ Stop Tracking")
-                .callbackData("untrack:" + item.getId())
-                .build();
-
-        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
-                .keyboardRow(new InlineKeyboardRow(untrackButton))
-                .build();
-
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text(text.toString())
-                .parseMode("HTML")
-                .replyMarkup(keyboard)
-                .build();
-
-        try {
-            telegramClient.execute(message);
-        } catch (TelegramApiException e) {
-            log.error("Failed to send message", e);
+            messageFormatter.sendItemMessage(chatId, item, "❌ Stop Tracking", "untrack:" + item.getId(), telegramClient);
         }
     }
 }

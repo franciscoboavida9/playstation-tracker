@@ -48,7 +48,7 @@ public class TrackerServiceTrackTest {
         TrackerId trackerId = new TrackerId(chatId, itemId);
 
         Chat chat = new Chat(chatId, chatType, LocalDateTime.now());
-        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Tracker activeTracker =
                 new Tracker(chat, item, trackerId, new BigDecimal("39.99"), true, LocalDateTime.now());
 
@@ -70,7 +70,7 @@ public class TrackerServiceTrackTest {
         TrackerId trackerId = new TrackerId(chatId, itemId);
 
         Chat chat = new Chat(chatId, chatType, LocalDateTime.now());
-        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Tracker inactiveTracker = new Tracker(chat, item, trackerId, new BigDecimal("49.99"), false, LocalDateTime.now());
 
         Mockito.when(trackerRepository.findById(trackerId)).thenReturn(Optional.of(inactiveTracker));
@@ -120,7 +120,7 @@ public class TrackerServiceTrackTest {
         Mockito.when(chatRepository.save(Mockito.any(Chat.class))).thenReturn(savedChat);
 
         Mockito.when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
-        Item fetchedItem = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item fetchedItem = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Mockito.when(itemService.searchById(itemId)).thenReturn(fetchedItem);
         Mockito.when(itemRepository.save(Mockito.any(Item.class))).thenReturn(fetchedItem);
 
@@ -152,7 +152,7 @@ public class TrackerServiceTrackTest {
         Chat existingChat = new Chat(chatId, chatType, LocalDateTime.now());
         Mockito.when(chatRepository.findById(chatId)).thenReturn(Optional.of(existingChat));
 
-        Item existingItem = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item existingItem = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Mockito.when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
 
         Mockito.when(trackerRepository.save(Mockito.any(Tracker.class))).thenAnswer(invocation -> invocation.getArgument(0));

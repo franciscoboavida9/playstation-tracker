@@ -34,7 +34,7 @@ public class TrackerServiceUntrackTest {
         TrackerId trackerId = new TrackerId(chatId, itemId);
 
         Chat chat = new Chat(chatId, "private", LocalDateTime.now());
-        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Tracker activeTracker = new Tracker(chat, item, trackerId, new BigDecimal("39.99"), true, LocalDateTime.now());
 
         Mockito.when(trackerRepository.findById(trackerId)).thenReturn(Optional.of(activeTracker));
@@ -75,7 +75,7 @@ public class TrackerServiceUntrackTest {
         TrackerId trackerId = new TrackerId(chatId, itemId);
 
         Chat chat = new Chat(chatId, "private", LocalDateTime.now());
-        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"));
+        Item item = new Item(itemId, "Test Game", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/cover.png");
         Tracker inactiveTracker = new Tracker(chat, item, trackerId, new BigDecimal("39.99"), false, LocalDateTime.now());
 
         Mockito.when(trackerRepository.findById(trackerId)).thenReturn(Optional.of(inactiveTracker));
