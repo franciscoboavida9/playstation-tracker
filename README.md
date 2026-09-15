@@ -85,6 +85,15 @@ SQL `DELETE`. This preserves user analytics, prevents foreign key cascade issues
 (`findByChatIdAndIsActiveTrue`) to filter records directly at the PostgreSQL level, avoiding the severe 
 memory leaks associated with fetching `findAll()` and filtering inside a Java loop.
 
+### UI/UX & Navigation Architecture
+* **Stateful-Feel in a Stateless Environment:** Telegram bots are inherently stateless — every button click is an isolated event carrying
+a tiny `callbackData` payload (capped at 64 bytes). To prevent the bot from having amnesia, I combined **Spring Caching** with 
+pagination keys (`srch:index:query`) to simulate a fluid, in-place card carousel (`EditMessageMedia`) without cluttering the chat with
+vertical walls of images, making the user have to scroll everytime.
+* **Performance Optimization & Rate-Limit Mitigation:** External GraphQL APIs (like Sony's) are fragile and prone to rate-limiting. 
+By implementing method-level caching (`@Cacheable`), search results are temporarily held in application memory. 
+Subsequent pagination clicks retrieve pre-parsed objects from local RAM, bypassing redundant network trips entirely.
+
 ---
 
 ## External API Integration (Sony GraphQL)
