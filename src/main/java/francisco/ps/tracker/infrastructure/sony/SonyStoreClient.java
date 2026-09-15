@@ -1,6 +1,7 @@
 package francisco.ps.tracker.infrastructure.sony;
 
 import francisco.ps.tracker.infrastructure.sony.dto.ItemDetailsDto;
+import francisco.ps.tracker.infrastructure.sony.dto.ItemMediaDto;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,11 +32,15 @@ public class SonyStoreClient {
 
     // Uses Sony's GraphQL persisted query hash
     private static final String itemUrl = "https://web.np.playstation.com/api/graphql/v1/" +
-            "op?operationName=productRetrieveForUpsellWithCtas&variables=%7B%22" +
-            "productId%22%3A%22%s%22%7D&" +
-            "extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256" +
-            "Hash%22%3A%22a3674adcab1c43cc5847002da67e12a2d138f3ad9dc67dd362452220ea492b26%22%7D%7D";
+            "op?operationName=productRetrieveForCtasWithPrice&variables=%7B%22" +
+            "productId%22%3A%22%s%22%7D&extensions=%7B%22" +
+            "persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%221f0ca607e170abbfb7d67bd76c9bbc97f21fe2e807be49e5fe764e14566cb605%22%7D%7D";
 
+    // Uses Sony's GraphQL persisted query hash
+    private static final String mediaUrl = "https://web.np.playstation.com/api/graphql/v1/" +
+            "op?operationName=productRetrieveForMediaCarousel&variables=%7B%22" +
+            "productId%22%3A%22%s%22%7D&extensions=%7B%22" +
+            "persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%221c9f30320cd7bdc24baf4e311fe1457247e9819c0be1019890e47ebc4fa4886a%22%7D%7D";
 
     private final RestClient restClient;
 
@@ -95,5 +100,14 @@ public class SonyStoreClient {
      */
     public ItemDetailsDto itemDetails(String id) {
         return fetchFromSony(id, itemUrl, ItemDetailsDto.class);
+    }
+
+    /**
+     * Fetches media assets and image details for a specific PlayStation Store item.
+     * @param id The unique identifier of the item in the Sony store.
+     * @return An ItemMediaDto containing the media list and image details for the item.
+     */
+    public ItemMediaDto itemMedia(String id) {
+        return fetchFromSony(id, mediaUrl, ItemMediaDto.class);
     }
 }

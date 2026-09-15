@@ -2,6 +2,7 @@ package francisco.ps.tracker.game;
 
 import francisco.ps.tracker.infrastructure.sony.SonyStoreClient;
 import francisco.ps.tracker.infrastructure.sony.dto.ItemDetailsDto;
+import francisco.ps.tracker.infrastructure.sony.dto.ItemMediaDto;
 import francisco.ps.tracker.infrastructure.sony.dto.MediaInfo;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.slf4j.Logger;
@@ -84,15 +85,9 @@ public class ItemService {
     public Item searchById(String itemId) {
         ItemDetailsDto itemDetailsDto = sonyStoreClient.itemDetails(itemId);
 
-        ItemDetailsDto.ProductDto product = Optional.ofNullable(itemDetailsDto)
+        ItemDetailsDto.ProductRetrieveDto product = Optional.ofNullable(itemDetailsDto)
                 .map(ItemDetailsDto::data)
                 .map(ItemDetailsDto.DataDto::productRetrieve)
-                .map(ItemDetailsDto.ProductRetrieveDto::concept)
-                .map(ItemDetailsDto.ConceptDto::products)
-                .flatMap(products -> products.stream()
-                        .filter(p -> itemId.equals(p.id()))
-                        .findFirst()
-                        .or(() -> products.stream().findFirst()))
                 .orElse(null);
 
         if (product == null) {
@@ -109,8 +104,16 @@ public class ItemService {
                         .or(() -> Optional.ofNullable(webctas.getFirst().price())))
                 .orElse(null);
 
+        ItemMediaDto itemMediaDto = sonyStoreClient.itemMedia(itemId);
+
+        List<ItemMediaDto.MediaDto> mediaList = Optional.ofNullable(itemMediaDto)
+                .map(ItemMediaDto::data)
+                .map(ItemMediaDto.DataDto::productRetrieve)
+                .map(ItemMediaDto.ProductRetrieveDto::media)
+                .orElse(Collections.emptyList());
+
         String id = product.id();
-        String coverImage = extractCoverImage(product.media());
+        String coverImage = extractCoverImage(mediaList);
         String name = product.name();
         BigDecimal basePrice = parsePrice(price != null ? price.basePrice() : null);
         BigDecimal currentPrice = parsePrice(price != null ? price.currentPrice() : null);

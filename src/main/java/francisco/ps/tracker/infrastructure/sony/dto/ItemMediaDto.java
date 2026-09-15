@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ItemDetailsDto(
+public record ItemMediaDto(
         DataDto data
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -15,23 +15,13 @@ public record ItemDetailsDto(
     ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record ProductRetrieveDto (
-            String id,
-            String name,
-            List<WebCtaDto> webctas
+    public record ProductRetrieveDto(
+            List<MediaDto> media
     ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record WebCtaDto(
-            PriceDto price,
-            String type
-    ) {}
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record PriceDto(
-            String applicability,
-            String basePrice,
-            @JsonProperty("discountedPrice") String currentPrice,
-            Boolean isTiedToSubscription
-    ) {}
+    public record MediaDto(
+            @JsonProperty("role") String imageRole,
+            @JsonProperty("url") String imageUrl
+    ) implements MediaInfo {}
 }
