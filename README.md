@@ -55,13 +55,6 @@ mapped to PostgreSQL's `numeric(5,2)` via Java's `BigDecimal` to ensure absolute
 assigns Telegram's native `chat_id` as the Primary Key. This removes the need for lookup queries during 
 webhook processing.
 
-### Technical Improvements
-* **Schema Evolution (Trade-off):** The project currently utilizes Hibernate's `ddl-auto=update` for rapid prototyping and
-  seamless schema generation. While highly efficient for local development, this is not good practice because Hibernate might
-  drop an existing column and create a new one, deleting user data when syncing the schema with the java entities. The
-  database could be managed with a tool like to **Flyway** to enforce strict, version-controlled SQL migrations and prevent
-  accidental data loss.
-
 ---
 
 ## Architecture & Design Decisions
