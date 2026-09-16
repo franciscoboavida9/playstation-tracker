@@ -23,7 +23,7 @@ Interact with the bot directly via Telegram using the following commands:
 * `/search <game name>` - Queries the PlayStation store and returns the top 3 results with accurate pricing.
 * `/wishlist` - Retrieves your personal list of tracked games and their current discount status.
 * **Inline Buttons:** Use the interactive "Track Game" and "Stop Tracking" buttons attached to bot messages 
-to seamlessly manage your wishlist without typing.
+to manage your wishlist without typing.
 
 ---
 
@@ -46,11 +46,14 @@ to seamlessly manage your wishlist without typing.
 * **Associative Entity Resolution:** The many-to-many (N:M) relationship between a Telegram `Chat` and a game `Item`
 is resolved via the `Tracker` entity. This prevents hidden join tables and allows the relationship itself to hold 
 business logic (e.g., specific `target_price` thresholds).
+
 * **Composite Primary Keys:** A user should only be able to track a specific item once. This uniqueness is guaranteed 
 at the database level using a composite key (`id_chat`, `id_item`) implemented via JPA's `@EmbeddedId` and mapped 
 cleanly using `@MapsId`.
+
 * **Financial Precision:** Floating-point math is dangerous for currency so all monetary values are strictly 
 mapped to PostgreSQL's `numeric(5,2)` via Java's `BigDecimal` to ensure absolute precision when triggering price drop alerts.
+
 * **External ID Mapping:** Instead of relying on auto-generated sequences for users, the application directly 
 assigns Telegram's native `chat_id` as the Primary Key. This removes the need for lookup queries during 
 webhook processing.
@@ -62,8 +65,10 @@ webhook processing.
 ### Telegram Bot Integration
 * **Long Polling over Webhooks:** Opted for Long Polling for the MVP. It simplifies local development and 
 deployment by eliminating the need for exposed ports and reverse proxies (ngrok), while still providing real-time responsiveness.
+
 * **Command Dispatcher (Strategy Pattern):** Incoming Telegram updates are routed through a centralized `CommandDispatcher`. 
 This replaces `if/else` blocks with clean, isolated `CommandHandler` classes, making the addition of future commands frictionless.
+
 * **Stateless Callback Routing:** UI interactions (like clicking "Track Game") use Telegram's inline keyboards with 
 callback payloads (e.g., `track:<itemId>`). The dispatcher parses this data and routes it to the correct handler, 
 requiring zero session state in the application memory.
@@ -72,28 +77,38 @@ requiring zero session state in the application memory.
 * **Domain Simplification:** The domain model was simplified by merging `Game` and `Edition` into a single 
 `Item` entity. Since the PlayStation Store treats every SKU (Standard, Deluxe) as an individual product with its
 own ID, maintaining separate tables introduced unnecessary complexity and database joins.
+
 * **Stateless Search:** To prevent database bloat, user searches query the external API directly
 without saving the results. When a user tracks a previously unsaved item, the `TrackerService`
 dynamically fetches the item details via its ID and saves them to the database.
+
 * **Target Price Calculation:** In order to meet the idea of notifying a user whenever a game has any discount, the system 
 automatically calculates the target threshold as `currentPrice - 0.01` at the moment of tracking. This avoids
 complex conditional logic for games already on sale while keeping the schema ready for custom user targets in V2.0.
+
 * **Soft Deletes:** Untracking an item sets an `isActive` boolean flag to `false` instead of executing a hard 
 SQL `DELETE`. This preserves user analytics, prevents foreign key cascade issues, and allows seamless 
 "resurrection" if a user tracks the game again.
+
 * **Database Delegation:** Retrieving a user's wishlist utilizes Spring Data JPA derived queries
 (`findByChatIdAndIsActiveTrue`) to filter records directly at the PostgreSQL level, avoiding the severe 
 memory leaks associated with fetching `findAll()` and filtering inside a Java loop.
 
 ### UI/UX & Navigation Architecture
-* **Stateful-Feel in a Stateless Environment:** Telegram bots are inherently stateless — every button click is an isolated event carrying
-a tiny `callbackData` payload (capped at 64 bytes). To prevent the bot from having amnesia, I combined **Spring Caching** with 
-pagination keys (`srch:index:query`) to simulate a fluid, in-place card carousel (`EditMessageMedia`) without cluttering the chat with
-vertical walls of images, making the user have to scroll everytime.
-* **Performance Optimization & Rate-Limit Mitigation:** External GraphQL APIs (like Sony's) are fragile and prone to rate-limiting. 
-By implementing method-level caching (`@Cacheable`), search results are temporarily held in application memory. 
-Subsequent pagination clicks retrieve pre-parsed objects from local RAM, bypassing redundant network trips entirely.
+* **Stateful-Feel in a Stateless Environment:** Telegram bots are inherently stateless — every button 
+click is an isolated event carrying a `callbackData` payload (capped at 64 bytes). To prevent the bot from having amnesia, 
+I combined **Spring Caching** with pagination keys (`srch:index:query`) to simulate a fluid card carousel without
+cluttering the chat with vertical walls of images.
 
+* **Caching Strategy & TTL (Time-To-Live):** To support the pagination carousel, search results are temporarily held 
+in application memory using Spring Cache backed by **Caffeine**.
+    * *Why In-Memory over Distributed (Redis)?* For this stage of the project, an in-memory cache avoids the 
+  infrastructure overhead of deploying and maintaining a separate Redis container. Since the app currently runs as a
+  single instance, horizontal scaling is not yet required.
+    * *Solving Stale Data:* Pricing data is highly volatile. To prevent the cache from serving outdated prices, a 
+  strict **10-minute TTL** is enforced. This balances fast UI pagination with data accuracy,
+  while protecting Sony's API from rate-limiting. 
+ 
 ---
 
 ## External API Integration (Sony GraphQL)
@@ -102,12 +117,25 @@ Subsequent pagination clicks retrieve pre-parsed objects from local RAM, bypassi
 * **Centralized HTTP Client (DRY):** All  requests to the PlayStation store are handled by the 
 `SonyStoreClient` adapter. A private generic helper method (`<T> T fetchFromSony`) handles the `RestClient`
 HTTP execution to avoid repeating code.
+
 * **Flexible Deserialization:** The Sony GraphQL API returns massive, deeply nested JSON trees. 
 The data is mapped into immutable Java `Record` DTOs. Using Jackson's 
 `@JsonIgnoreProperties(ignoreUnknown = true)` ensures the application only deserializes the specific data paths it 
 needs (like price and ID).
+
 * **Security & CSRF Bypass:** Safely accesses Sony's undocumented API by mimicking a browser, explicitly encoding 
 user inputs (to handle spaces/special characters) and enforcing required `apollo-require-preflight` HTTP headers.
+
+* **Data Aggregation & BFF Handling:** The Sony GraphQL API acts as a Backend-For-Frontend (BFF) optimized for their
+web app, meaning data is heavily fragmented. To build a complete `Item`, the `ItemService` acts as an aggregator:
+    1. **Search API:** Resolves user text input into exact product IDs.
+    2. **Product Details API:** Fetches the exact pricing for the specific SKU (bypassing a known Sony bug where the
+  API artificially forces expensive "Deluxe" bundles to the top of results).
+    3. **Media API:** Fetches the high-resolution cover art, which is intentionally stripped from the Details API to save 
+  bandwidth.
+       By stitching these fragmented responses together in the service layer *before* persisting to PostgreSQL, the 
+  application ensures high data integrity and good UI formatting. Once a game is tracked, all subsequent reads 
+  (like viewing the wishlist) hit the local database, resulting in zero external API calls.
 
 ---
 
@@ -127,13 +155,16 @@ francisco.ps.tracker
 1. **Data Layer Integration (`TrackerRepositoryTest`):** Validates the composite keys, constraints, and persistence 
 logic using `@DataJpaTest`. Uses **Testcontainers** to run against a real, temporary PostgreSQL Docker container rather
 than an in-memory H2 mock, leveraging `TestEntityManager.flush()` to ensure SQL queries hit the disk.
+
 2. **HTTP Adapter Integration (`SonyStoreClientTest`):** Isolates the HTTP client using `@RestClientTest` and
 `MockRestServiceServer`. Proves the client securely builds expected URLs and successfully maps deeply nested JSON
 trees into Java records. Avoids testing tautology by utilizing Hamcrest matchers (`containsString`) to verify 
 URI encoding dynamically without duplicating massive GraphQL URL strings.
+
 3. **Business Logic Isolation (`TrackerServiceTest` and `ItemServiceTest`):** Uses Mockito and AssertJ to rigorously test
 edge cases (API null responses, spam tracking prevention, inactive tracker resurrection) entirely in memory without relying 
 on the database or network constraints.
+
 4. **Telegram Interface Isolation (`CommandDispatcherTest` and **Handlers**):** Uses Mockito to stub the `TelegramClient` and
 `Update` objects. Verifies that the `CommandDispatcher` correctly routes text commands and callback queries to the appropriate
 handlers, ensuring the bot formats and executes the expected API responses without making actual network calls to Telegram's 
