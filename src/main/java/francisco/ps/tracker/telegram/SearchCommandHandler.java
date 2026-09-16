@@ -15,7 +15,6 @@ public class SearchCommandHandler implements CommandHandler {
 
     private final ItemService itemService;
     private final MessageFormatter messageFormatter;
-
     private static final Logger log = LoggerFactory.getLogger(SearchCommandHandler.class);
 
     public SearchCommandHandler(ItemService itemService, MessageFormatter messageFormatter) {
@@ -35,8 +34,8 @@ public class SearchCommandHandler implements CommandHandler {
     public void handle(Update update, TelegramClient telegramClient) {
         long chatId = update.getMessage().getChatId();
         String messageText = update.getMessage().getText().trim();
-
         String query = messageText.replaceFirst("^/search", "").trim();
+
         if (query.isEmpty()) {
             log.warn("User {} issued /search with no query.", chatId);
             messageFormatter.sendTextMessage(chatId, "⚠️ Please provide a game name. Example:\n<code>/search Elden Ring</code>", telegramClient);
@@ -52,16 +51,9 @@ public class SearchCommandHandler implements CommandHandler {
             return;
         }
 
+        int displayLimit = Math.min(items.size(), 5);
         log.info("Found {} results for query: '{}', sending to user {}", items.size(), query, chatId);
-        int displayLimit = Math.min(items.size(), 3);
 
-        for (int i = 0; i < displayLimit; i++) {
-            Item item = items.get(i);
-            messageFormatter.sendItemMessage(chatId, item, "➕ Track Game", "track:" + item.getId(), telegramClient);
-        }
-
-        if (items.size() > 3) {
-            messageFormatter.sendTextMessage(chatId, "<i>Showing top 3 results. Be more specific if you don't see your game!</i>", telegramClient);
-        }
+        messageFormatter.sendSearchCarousel(chatId, items.getFirst(), query, 0, displayLimit, telegramClient);
     }
 }

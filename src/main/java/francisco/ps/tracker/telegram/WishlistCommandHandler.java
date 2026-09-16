@@ -1,19 +1,11 @@
 package francisco.ps.tracker.telegram;
 
-import francisco.ps.tracker.game.Item;
 import francisco.ps.tracker.tracker.Tracker;
 import francisco.ps.tracker.tracker.TrackerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
@@ -23,7 +15,6 @@ public class WishlistCommandHandler implements CommandHandler {
 
     private final TrackerService trackerService;
     private final MessageFormatter messageFormatter;
-
     private static final Logger log = LoggerFactory.getLogger(WishlistCommandHandler.class);
 
     public WishlistCommandHandler(TrackerService trackerService, MessageFormatter messageFormatter) {
@@ -51,11 +42,7 @@ public class WishlistCommandHandler implements CommandHandler {
             return;
         }
 
-        messageFormatter.sendTextMessage(chatId, "📋 <b>Here are your tracked games:</b>", telegramClient);
-
-        for (Tracker tracker : trackers) {
-            Item item = tracker.getItem();
-            messageFormatter.sendItemMessage(chatId, item, "❌ Stop Tracking", "untrack:" + item.getId(), telegramClient);
-        }
+        // Trigger the carousel starting at Index 0
+        messageFormatter.sendWishlistCarousel(chatId, trackers.getFirst().getItem(), 0, trackers.size(), telegramClient);
     }
 }

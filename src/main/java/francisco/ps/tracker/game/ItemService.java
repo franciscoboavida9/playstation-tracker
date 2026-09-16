@@ -7,6 +7,7 @@ import francisco.ps.tracker.infrastructure.sony.dto.MediaInfo;
 import francisco.ps.tracker.infrastructure.sony.dto.SearchResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,6 +32,7 @@ public class ItemService {
      * @param input The user's input.
      * @return The list of results of the search.
      */
+    @Cacheable(value = "searchResults", key = "#input")
     public List<Item> search(String input) {
         log.debug("Formatting search results for query: {}", input);
         SearchResponseDto searchResponseDto = sonyStoreClient.searchResponse(input);
