@@ -7,6 +7,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity representing a unique Telegram User/Chat session.
+ * Uses the native Telegram chat_id as the primary key to eliminate lookup queries.
+ */
 @Getter
 @Entity
 public class Chat {

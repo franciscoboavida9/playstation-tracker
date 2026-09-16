@@ -9,6 +9,10 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Associative entity resolving the Many-to-Many relationship between a Chat and an Item.
+ * Stores business logic specific to that relationship, such as active status and target discount prices.
+ */
 @Setter
 @Getter
 @Entity

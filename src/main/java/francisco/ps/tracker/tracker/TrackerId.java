@@ -7,6 +7,10 @@ import lombok.Getter;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Composite Primary Key for the Tracker entity.
+ * Enforces database-level uniqueness to guarantee a user can only track a specific Item once.
+ */
 @Getter
 @Embeddable
 public class TrackerId implements Serializable {

@@ -14,6 +14,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Core business logic for managing user wishlists.
+ * Handles tracking validations, wishlist retrieval, and executing soft-deletes when untracking.
+ */
 @Service
 public class TrackerService {
 

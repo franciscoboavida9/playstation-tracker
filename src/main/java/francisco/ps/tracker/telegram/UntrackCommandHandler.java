@@ -13,6 +13,11 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
+/**
+ * Intercepts "❌ Untrack" button clicks.
+ * Soft-deletes the item from the user's wishlist and seamlessly auto-swipes the UI carousel
+ * to the next available game (or displays an empty state).
+ */
 @Component
 public class UntrackCommandHandler implements CommandHandler {
 

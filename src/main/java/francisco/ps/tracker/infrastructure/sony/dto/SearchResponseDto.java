@@ -5,6 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
+/**
+ * Data Transfer Object mapping the Sony Universal Search GraphQL response.
+ * Acts as the first step in the data pipeline, resolving unpredictable user
+ * text queries into exact PlayStation Store product IDs.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SearchResponseDto(
         DataDto data

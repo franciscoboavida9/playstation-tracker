@@ -8,6 +8,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+/**
+ * Handles the "/start" command to welcome and register new users.
+ */
 @Component
 public class StartCommandHandler implements CommandHandler {
 

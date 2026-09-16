@@ -10,6 +10,10 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
+/**
+ * Handles the "/search <query>" command.
+ * Queries the ItemService and triggers the initial MessageFormatter Search Carousel.
+ */
 @Component
 public class SearchCommandHandler implements CommandHandler {
 

@@ -16,6 +16,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Core business logic layer for Games.
+ * Acts as an Aggregator for the fragmented Sony Backend-For-Frontend (BFF), stitching
+ * together pricing and media data. Also implements TTL Caching to protect against
+ * rate-limiting during UI pagination.
+ */
 @Service
 public class ItemService {
 

@@ -10,6 +10,10 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
+/**
+ * Handles the "/wishlist" command.
+ * Fetches the user's tracked games from the local database and launches the Wishlist Carousel.
+ */
 @Component
 public class WishlistCommandHandler implements CommandHandler {
 

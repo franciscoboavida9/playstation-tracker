@@ -10,6 +10,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+/**
+ * Intercepts "➕ Track" button clicks.
+ * Triggers the TrackerService to fetch pristine details and persist the Item to the user's wishlist.
+ */
 @Component
 public class TrackCommandHandler implements CommandHandler {
 

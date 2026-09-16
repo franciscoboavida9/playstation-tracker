@@ -8,6 +8,11 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
+/**
+ * Central router using the Strategy Pattern.
+ * Intercepts all incoming Telegram Updates and dynamically dispatches them to the
+ * first matching CommandHandler, keeping the bot stateless and free of if/else chains.
+ */
 @Component
 public class CommandDispatcher {
     private static final Logger log = LoggerFactory.getLogger(CommandDispatcher.class);

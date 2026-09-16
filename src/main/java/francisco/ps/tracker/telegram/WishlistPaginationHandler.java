@@ -10,6 +10,10 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
+/**
+ * Intercepts "⬅️/➡️" arrow clicks on the Wishlist Carousel.
+ * Reads directly from the local PostgreSQL database to instantly swap the game cover in place.
+ */
 @Component
 public class WishlistPaginationHandler implements CommandHandler {
 

@@ -10,6 +10,11 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
+/**
+ * Intercepts "⬅️/➡️" arrow clicks on the Search Carousel.
+ * Relies on Spring Caching to instantly serve pre-loaded results without hitting the Sony API,
+ * editing the existing message in-place for seamless pagination.
+ */
 @Component
 public class SearchPaginationHandler implements CommandHandler {
 

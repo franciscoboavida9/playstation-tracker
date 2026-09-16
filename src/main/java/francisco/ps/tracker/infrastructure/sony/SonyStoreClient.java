@@ -13,9 +13,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Infrastructure client responsible for communicating directly with Sony's GraphQL API.
- * Handles HTTP requests, injecting required preflight headers,
- * and mapping raw JSON responses into typed DTO records for search and product details.
+ * External Adapter for the undocumented Sony PlayStation Store GraphQL API.
+ * Acts as a Backend-For-Frontend (BFF) client, managing HTTP headers, CSRF bypass,
+ * and executing the specific endpoint queries required for data aggregation.
  */
 @Component
 public class SonyStoreClient {

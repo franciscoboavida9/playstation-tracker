@@ -5,6 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
+/**
+ * Data Transfer Object mapping the Sony Media GraphQL response.
+ * Fetched concurrently during the Aggregation phase to retrieve high-resolution
+ * cover art that is intentionally stripped from the standard details endpoint.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ItemMediaDto(
         DataDto data

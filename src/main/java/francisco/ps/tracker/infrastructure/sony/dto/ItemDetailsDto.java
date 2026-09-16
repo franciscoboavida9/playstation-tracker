@@ -5,6 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
+/**
+ * Data Transfer Object mapping the Sony Product Details GraphQL response.
+ * Used during the Aggregation phase to extract pristine, SKU-specific pricing
+ * while intentionally bypassing Sony's bundle upsell bugs.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ItemDetailsDto(
         DataDto data

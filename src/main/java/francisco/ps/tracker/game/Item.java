@@ -9,6 +9,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity representing a unique PlayStation Store product (SKU).
+ * Holds essential details like the title, current/base pricing, and high-res cover art.
+ */
 @Getter
 @Setter
 @Entity

@@ -9,6 +9,10 @@ import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateC
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+/**
+ * The main Long Polling Telegram Bot configuration.
+ * Listens for incoming chat events and forwards them to the CommandDispatcher.
+ */
 @Component
 public class PsTrackerBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
