@@ -1,5 +1,6 @@
 package francisco.ps.tracker.telegram;
 
+import francisco.ps.tracker.tracker.Tracker;
 import francisco.ps.tracker.tracker.TrackerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,14 +11,18 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import java.util.List;
+
 @Component
 public class UntrackCommandHandler implements CommandHandler {
 
     private final TrackerService trackerService;
+    private final MessageFormatter messageFormatter;
     private static final Logger log = LoggerFactory.getLogger(UntrackCommandHandler.class);
 
-    public UntrackCommandHandler(TrackerService trackerService) {
+    public UntrackCommandHandler(TrackerService trackerService, MessageFormatter messageFormatter) {
         this.trackerService = trackerService;
+        this.messageFormatter = messageFormatter;
     }
 
     @Override
@@ -32,7 +37,11 @@ public class UntrackCommandHandler implements CommandHandler {
         long chatId = update.getCallbackQuery().getMessage().getChatId();
         int messageId = update.getCallbackQuery().getMessage().getMessageId();
         String callbackQueryId = update.getCallbackQuery().getId();
-        String itemId = callbackData.substring(8);
+
+        String[] parts = callbackData.split(":", 3);
+        String itemId = parts[1];
+        int currentIndex = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+
         log.info("User {} attempting to untrack item: {}", chatId, itemId);
 
         try {
@@ -42,18 +51,25 @@ public class UntrackCommandHandler implements CommandHandler {
             AnswerCallbackQuery answer = AnswerCallbackQuery.builder()
                     .callbackQueryId(callbackQueryId)
                     .text("✅ Game removed from wishlist!")
-                    .showAlert(false) // Toast notification
+                    .showAlert(false)
                     .build();
             telegramClient.execute(answer);
 
-            EditMessageText editMessage = EditMessageText.builder()
-                    .chatId(chatId)
-                    .messageId(messageId)
-                    .text("❌ <i>This game is no longer being tracked.</i>")
-                    .parseMode("HTML")
-                    .build();
-            telegramClient.execute(editMessage);
+            List<Tracker> trackers = trackerService.wishlist(chatId);
+            if (trackers == null || trackers.isEmpty()) {
+                messageFormatter.editToEmptyWishlist(chatId, messageId, telegramClient);
+            } else {
+                int nextIndex = Math.min(currentIndex, trackers.size() - 1);
 
+                messageFormatter.editWishlistCarousel(
+                        chatId,
+                        messageId,
+                        trackers.get(nextIndex).getItem(),
+                        nextIndex,
+                        trackers.size(),
+                        telegramClient
+                );
+            }
         } catch (TelegramApiException e) {
             log.error("Failed to execute Telegram API call", e);
         } catch (Exception e) {

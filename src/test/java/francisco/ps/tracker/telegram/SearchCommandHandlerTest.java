@@ -3,12 +3,8 @@ package francisco.ps.tracker.telegram;
 import francisco.ps.tracker.game.Item;
 import francisco.ps.tracker.game.ItemService;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.math.BigDecimal;
@@ -60,9 +56,7 @@ class SearchCommandHandlerTest {
     @Test
     void shouldSendUsageInstructionWhenQueryIsEmpty() {
         Update update = createMockUpdate("/search", 12345L);
-
         handler.handle(update, telegramClient);
-
         verify(messageFormatter).sendTextMessage(eq(12345L), contains("Please provide a game name"), eq(telegramClient));
     }
 
@@ -72,19 +66,18 @@ class SearchCommandHandlerTest {
         when(itemService.search("UnknownGame")).thenReturn(Collections.emptyList());
 
         handler.handle(update, telegramClient);
-
         verify(messageFormatter).sendTextMessage(eq(12345L), contains("No games found"), eq(telegramClient));
     }
 
     @Test
-    void shouldExecuteSendMessageOnHandleWithCorrectItemData() {
+    void shouldSendSearchCarouselWithCorrectData() {
         Update update = createMockUpdate("/search Elden Ring", 12345L);
-
         Item mockItem = new Item("1L", "Elden Ring", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/image.png");
 
         when(itemService.search("Elden Ring")).thenReturn(List.of(mockItem));
         handler.handle(update, telegramClient);
 
-        verify(messageFormatter).sendItemMessage(12345L, mockItem, "➕ Track Game", "track:1L", telegramClient);
+        // Verifies the carousel is launched with the correct item, query, starting index (0), and total limit (1)
+        verify(messageFormatter).sendSearchCarousel(12345L, mockItem, "Elden Ring", 0, 1, telegramClient);
     }
 }

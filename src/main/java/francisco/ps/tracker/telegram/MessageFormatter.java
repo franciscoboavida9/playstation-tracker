@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
@@ -93,10 +95,13 @@ public class MessageFormatter {
         if (currentIndex > 0) {
             row.add(InlineKeyboardButton.builder().text("⬅️").callbackData("wishlist_page:" + (currentIndex - 1)).build());
         }
-        row.add(InlineKeyboardButton.builder().text("❌ Untrack").callbackData("untrack:" + itemId).build());
+
+        row.add(InlineKeyboardButton.builder().text("❌ Untrack").callbackData("untrack:" + itemId + ":" + currentIndex).build());
+
         if (currentIndex < totalItems - 1) {
             row.add(InlineKeyboardButton.builder().text("➡️").callbackData("wishlist_page:" + (currentIndex + 1)).build());
         }
+
         return InlineKeyboardMarkup.builder().keyboardRow(new InlineKeyboardRow(row)).build();
     }
 
@@ -158,6 +163,26 @@ public class MessageFormatter {
             telegramClient.execute(sendPhoto);
         } catch (TelegramApiException e) {
             log.error("Failed to send item message", e);
+        }
+    }
+
+    public void editToEmptyWishlist(long chatId, int messageId, TelegramClient telegramClient) {
+        DeleteMessage deleteMessage = DeleteMessage.builder()
+                        .chatId(chatId)
+                        .messageId(messageId)
+                        .build();
+
+        SendMessage sendMessage = SendMessage.builder()
+                        .chatId(chatId)
+                        .text("📋 <b>Your wishlist is now empty!</b>\n\nUse /search to find games and start tracking them.")
+                        .parseMode("HTML")
+                        .build();
+
+        try {
+            telegramClient.execute(deleteMessage);
+            telegramClient.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error("Failed to edit message to empty wishlist state", e);
         }
     }
 }

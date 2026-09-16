@@ -4,12 +4,8 @@ import francisco.ps.tracker.game.Item;
 import francisco.ps.tracker.tracker.Tracker;
 import francisco.ps.tracker.tracker.TrackerService;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.math.BigDecimal;
@@ -58,13 +54,12 @@ class WishlistCommandHandlerTest {
         when(trackerService.wishlist(12345L)).thenReturn(Collections.emptyList());
 
         handler.handle(update, telegramClient);
-
         verify(messageFormatter).sendTextMessage(eq(12345L), contains("Your wishlist is empty"), eq(telegramClient));
     }
-    @Test
-    void shouldSendHeaderAndItemsWhenWishlistHasGames() {
-        Update update = createMockUpdate("/wishlist", 12345L);
 
+    @Test
+    void shouldSendWishlistCarouselWhenWishlistHasGames() {
+        Update update = createMockUpdate("/wishlist", 12345L);
         Item mockItem = new Item("1L", "Elden Ring", new BigDecimal("59.99"), new BigDecimal("39.99"), "http://example.com/image.png");
         Tracker mockTracker = mock(Tracker.class);
         when(mockTracker.getItem()).thenReturn(mockItem);
@@ -72,7 +67,7 @@ class WishlistCommandHandlerTest {
         when(trackerService.wishlist(12345L)).thenReturn(List.of(mockTracker));
         handler.handle(update, telegramClient);
 
-        verify(messageFormatter).sendTextMessage(eq(12345L), contains("Here are your tracked games"), eq(telegramClient));
-        verify(messageFormatter).sendItemMessage(12345L, mockItem, "❌ Stop Tracking", "untrack:1L", telegramClient);
+        // Verifies the carousel is launched starting at index 0
+        verify(messageFormatter).sendWishlistCarousel(12345L, mockItem, 0, 1, telegramClient);
     }
 }
