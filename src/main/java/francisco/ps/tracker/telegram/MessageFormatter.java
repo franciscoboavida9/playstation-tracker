@@ -160,4 +160,20 @@ public class MessageFormatter {
             log.error("Failed to send item message", e);
         }
     }
+
+    public void editToUntrackedState(long chatId, int messageId, TelegramClient telegramClient) {
+        org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption edit =
+                org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption.builder()
+                        .chatId(chatId)
+                        .messageId(messageId)
+                        .caption("❌ <i>This game is no longer being tracked.</i>\n\nUse /wishlist to view your updated list.")
+                        .parseMode("HTML")
+                        .replyMarkup(null)
+                        .build();
+        try {
+            telegramClient.execute(edit);
+        } catch (TelegramApiException e) {
+            log.error("Failed to edit message caption to untracked state", e);
+        }
+    }
 }

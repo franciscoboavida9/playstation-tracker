@@ -17,7 +17,8 @@ import static org.mockito.Mockito.*;
 class UntrackCommandHandlerTest {
 
     private final TrackerService trackerService = mock(TrackerService.class);
-    private final UntrackCommandHandler handler = new UntrackCommandHandler(trackerService);
+    private final MessageFormatter messageFormatter = mock(MessageFormatter.class);
+    private final UntrackCommandHandler handler = new UntrackCommandHandler(trackerService, messageFormatter);
     private final TelegramClient telegramClient = mock(TelegramClient.class);
 
     private Update createMockCallbackUpdate(String callbackData, Long chatId, Integer messageId, String queryId) {

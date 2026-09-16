@@ -14,10 +14,12 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 public class UntrackCommandHandler implements CommandHandler {
 
     private final TrackerService trackerService;
+    private final MessageFormatter messageFormatter;
     private static final Logger log = LoggerFactory.getLogger(UntrackCommandHandler.class);
 
-    public UntrackCommandHandler(TrackerService trackerService) {
+    public UntrackCommandHandler(TrackerService trackerService, MessageFormatter messageFormatter) {
         this.trackerService = trackerService;
+        this.messageFormatter = messageFormatter;
     }
 
     @Override
@@ -46,14 +48,7 @@ public class UntrackCommandHandler implements CommandHandler {
                     .build();
             telegramClient.execute(answer);
 
-            EditMessageText editMessage = EditMessageText.builder()
-                    .chatId(chatId)
-                    .messageId(messageId)
-                    .text("❌ <i>This game is no longer being tracked.</i>")
-                    .parseMode("HTML")
-                    .build();
-            telegramClient.execute(editMessage);
-
+            messageFormatter.editToUntrackedState(chatId, messageId, telegramClient);
         } catch (TelegramApiException e) {
             log.error("Failed to execute Telegram API call", e);
         } catch (Exception e) {
