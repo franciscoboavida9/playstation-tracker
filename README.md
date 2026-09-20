@@ -108,6 +108,21 @@ in application memory using Spring Cache backed by **Caffeine**.
     * *Solving Stale Data:* Pricing data is highly volatile. To prevent the cache from serving outdated prices, a 
   strict **10-minute TTL** is enforced. This balances fast UI pagination with data accuracy,
   while protecting Sony's API from rate-limiting. 
+
+### Background Processing and Automation
+* **Automated Price Polling (Scheduler):** The application utilizes Spring's `@Scheduled` annotation to run a daily 
+background job that audits prices without user interaction.
+
+* **Game Polling:** To avoid  $O(N \times M)$ API calls, the polling logic is game-centric rather than 
+user-centric. The database is queried for distinct active games. If 1,000 users are tracking "Elden Ring", the application 
+makes exactly 1 API call to Sony, updating the core item before distributing alerts to the subscribed users.
+
+* **Spam Prevention:** When a price drop is detected, the database updates the item's current price and immediately 
+adjusts the `target_price` threshold for all notified users to `newPrice - 0.01`. This ensures users are not spammed with 
+identical alerts every 24 hours while a week-long sale is active, but will still be notified if the price drops even further.
+
+* **Proactive Notifications:** The scheduler operates independently, injecting the `TelegramClient` to dynamically dispatch
+`SendPhoto` alerts to users entirely asynchronously.
  
 ---
 
@@ -147,6 +162,7 @@ francisco.ps.tracker
 ├── tracker/        # Core Domain: Associative Entity, composite keys, TrackerService
 ├── telegram/       # Bot Interface: CommandDispatcher, Handlers, Bot config
 ├── infrastructure/ # External Adapters: Sony API integration (SonyStoreClient, DTOs)
+├── scheduler/      # Background Jobs: Cron-based PriceAlertScheduler
 ```
 
 ---
@@ -161,9 +177,10 @@ than an in-memory H2 mock, leveraging `TestEntityManager.flush()` to ensure SQL 
 trees into Java records. Avoids testing tautology by utilizing Hamcrest matchers (`containsString`) to verify 
 URI encoding dynamically without duplicating massive GraphQL URL strings.
 
-3. **Business Logic Isolation (`TrackerServiceTest` and `ItemServiceTest`):** Uses Mockito and AssertJ to rigorously test
-edge cases (API null responses, spam tracking prevention, inactive tracker resurrection) entirely in memory without relying 
-on the database or network constraints.
+3. **Business Logic Isolation (`TrackerServiceTest`, `ItemServiceTest` and `PriceAlertSchedulerTest`):** Uses Mockito and AssertJ 
+to rigorously test edge cases (API null responses, spam tracking prevention, inactive tracker resurrection, and asynchronous price 
+drop detection) entirely in memory without relying on the database or network constraints. Ensures the scheduler gracefully continues
+polling remaining items even if an external API call for a specific game throws an exception.
 
 4. **Telegram Interface Isolation (`CommandDispatcherTest` and **Handlers**):** Uses Mockito to stub the `TelegramClient` and
 `Update` objects. Verifies that the `CommandDispatcher` correctly routes text commands and callback queries to the appropriate
