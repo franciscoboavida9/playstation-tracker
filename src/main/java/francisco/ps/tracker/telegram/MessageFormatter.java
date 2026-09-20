@@ -189,4 +189,40 @@ public class MessageFormatter {
             log.error("Failed to edit message to empty wishlist state", e);
         }
     }
+
+    public void sendPriceDropAlert(long chatId, Item item, TelegramClient telegramClient) {
+        StringBuilder text = new StringBuilder();
+        text.append("🚨 <b>PRICE DROP ALERT!</b> 🚨\n\n");
+        text.append("🎮 <b>").append(item.getName()).append("</b>\n\n");
+
+        text.append("🔥 <b>New Price:</b> €").append(item.getCurrentPrice()).append("\n");
+        if (item.getBasePrice() != null) {
+            text.append("<s>Regular Price: €").append(item.getBasePrice()).append("</s>\n");
+        }
+
+        // '0' is passed as the index so that if the user clicks Untrack from this alert,
+        // it falls back to the start of their wishlist carousel
+        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
+                .keyboardRow(new InlineKeyboardRow(
+                        InlineKeyboardButton.builder()
+                                .text("❌ Untrack")
+                                .callbackData("untrack:" + item.getId() + ":0")
+                                .build()
+                ))
+                .build();
+
+        SendPhoto sendPhoto = SendPhoto.builder()
+                .chatId(chatId)
+                .photo(resolveInputPhoto(item))
+                .caption(text.toString())
+                .parseMode("HTML")
+                .replyMarkup(keyboard)
+                .build();
+
+        try {
+            telegramClient.execute(sendPhoto);
+        } catch (TelegramApiException e) {
+            log.error("Failed to send price drop alert to chat {} for item {}", chatId, item.getId(), e);
+        }
+    }
 }
