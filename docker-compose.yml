@@ -1,11 +1,42 @@
-version: '3.8'
 services:
+  # Database
   postgres:
     image: postgres:15-alpine
     container_name: ps-tracker-db
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
       POSTGRES_DB: pstracker
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - pstracker-network
+
+  # Spring Boot App
+  ps-tracker-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ps-tracker-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pstracker
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
+    networks:
+      - pstracker-network
+
+# Infrastructure
+volumes:
+  pgdata:
+
+networks:
+  pstracker-network:
+    driver: bridge
