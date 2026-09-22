@@ -1,9 +1,21 @@
-# PlayStation Tracker (PS-Tracker)
-![Java 21](https://img.shields.io/badge/Java-21-ED8B00.svg)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-brightgreen.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)
-![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+<div align="center">
+
+# PlayStation Tracker
+
+  <p>
+    <img src="https://img.shields.io/badge/PlayStation-0070D1?style=for-the-badge&logo=playstation&logoColor=fff" alt="PlayStation" />
+  </p>
+
+  <p><b>Track PlayStation Store (🇵🇹) prices and get notified on discounts</b></p>
+
+  <!-- Live Bot CTA Button -->
+  <p>
+    <a href="https://t.me/PsPriceTrackerBot">
+      <img src="https://img.shields.io/badge/_START_BOT_ON_TELEGRAM-2496ED?style=for-the-badge&logo=telegram&logoColor=white" alt="Start Bot" />
+    </a>
+  </p>
+
+</div>
 
 A Spring Boot backend service that polls PlayStation store prices, evaluates target thresholds and automates
 alert notifications to specific chat sessions.
@@ -19,6 +31,8 @@ their chat client, without needing to navigate the web store. The MVP is fully c
 ---
 
 ## How to Use
+You can interact with the live bot directly on Telegram: **[@PsPriceTrackerBot](https://t.me/PsPriceTrackerBot)** 
+
 Interact with the bot directly via Telegram using the following commands:
 * `/start` - Displays the welcome message and basic instructions.
 * `/search <game name>` - Queries the PlayStation store and returns the top 3 results with accurate pricing.
@@ -28,14 +42,20 @@ to manage your wishlist without typing.
 
 ---
 
-## Built With
-* **Language:** Java 21
-* **Framework:** Spring Boot (Spring Data JPA, Validation, WebMVC, RestClient)
-* **Telegram API:** TelegramBots Long Polling
-* **Database:** PostgreSQL 15
-* **Persistence & ORM:** Hibernate ORM
-* **Testing Infrastructure:** JUnit 5, Testcontainers, AssertJ, MockRestServiceServer
-* **Containerization:** Docker & Docker Compose
+### Built With
+
+<ul style="list-style-type: disc;">
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Java_21-%23ED8B00.svg?logo=openjdk&logoColor=white" alt="Java" style="vertical-align: middle;" /> — <em>Base Java 21 execution environment</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Spring_Boot_4.1.0-6DB33F?logo=springboot&logoColor=fff" alt="Spring Boot" style="vertical-align: middle;" /> — <em>Application core & REST client</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Postgres_15-%23316192.svg?logo=postgresql&logoColor=white" alt="PostgreSQL" style="vertical-align: middle;" /> — <em>Reliable relational storage for prices & user tracking</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Hibernate-59666C?logo=hibernate&logoColor=white" alt="Hibernate" style="vertical-align: middle;" /> — <em>ORM for seamless database mapping</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Telegram_Bot_API-2CA5E0?logo=telegram&logoColor=white" alt="Telegram" style="vertical-align: middle;" /> — <em>Long polling interface for real-time user alerts</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Caffeine_Cache-FF5722?logo=coffeescript&logoColor=white" alt="Caffeine Cache" style="vertical-align: middle;" /> — <em>In-memory TTL cache to optimize search pagination</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff" alt="Docker" style="vertical-align: middle;" /> — <em>Containerized multi-stage builds</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Raspberry_Pi_5-cd2355.svg?logo=raspberrypi" alt="Raspberry Pi" style="vertical-align: middle;" /> — <em>24/7 self-hosted local deployment server</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/JUnit_5-4C956C?logo=junit5&logoColor=fff" alt="JUnit" style="vertical-align: middle;" /> — <em>Unit testing framework</em></li>
+  <li style="margin-bottom: 8px;"><img src="https://img.shields.io/badge/Testcontainers-008080?logo=codesandbox&logoColor=white" alt="Testcontainers" style="vertical-align: middle;" /> — <em>Integration tests backed by real Postgres containers</em></li>
+</ul>
 
 ---
 
