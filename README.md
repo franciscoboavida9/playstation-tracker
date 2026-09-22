@@ -13,7 +13,8 @@ alert notifications to specific chat sessions.
 ## About the Project
 PS-Tracker abstracts the complexity of the undocumented Sony GraphQL API into a seamless Telegram Bot experience. 
 Users can search the PlayStation Store, add games to a wishlist, and instantly see active discounts directly within 
-their chat client, without needing to navigate the web store.
+their chat client, without needing to navigate the web store. The MVP is fully containerized and currently self-hosted
+24/7 on a headless Raspberry Pi.
 
 ---
 
@@ -62,6 +63,19 @@ webhook processing.
 
 ## Architecture & Design Decisions
 
+### Deployment
+* **Self-Hosting:** The application is deployed on a headless Raspberry Pi 5, running continuously via SSH management.
+
+* **Multi-Stage Containerization:** A multi-stage `Dockerfile` uses a Maven base to build the `.jar` and a lightweight Alpine
+JRE to run it. This prevents source code and build tools from bloating the production runtime image.
+
+* **Isolated Docker Environment:** `docker-compose.yml` manages both the Spring Boot application and the PostgreSQL database 
+(with persistent data volumes) inside an isolated internal Docker bridge network.
+
+* **Native ARM64 Build:** To avoid `x86_64` to `arm64` architecture mismatches, the Docker image is built natively on the Raspberry Pi,
+fetching source code directly via Git pulls.
+
+
 ### Telegram Bot Integration
 * **Long Polling over Webhooks:** Opted for Long Polling for the MVP. It simplifies local development and 
 deployment by eliminating the need for exposed ports and reverse proxies (ngrok), while still providing real-time responsiveness.
@@ -72,6 +86,7 @@ This replaces `if/else` blocks with clean, isolated `CommandHandler` classes, ma
 * **Stateless Callback Routing:** UI interactions (like clicking "Track Game") use Telegram's inline keyboards with 
 callback payloads (e.g., `track:<itemId>`). The dispatcher parses this data and routes it to the correct handler, 
 requiring zero session state in the application memory.
+
 
 ### Domain & Business Logic
 * **Domain Simplification:** The domain model was simplified by merging `Game` and `Edition` into a single 
@@ -94,6 +109,7 @@ SQL `DELETE`. This preserves user analytics, prevents foreign key cascade issues
 (`findByChatIdAndIsActiveTrue`) to filter records directly at the PostgreSQL level, avoiding the severe 
 memory leaks associated with fetching `findAll()` and filtering inside a Java loop.
 
+
 ### UI/UX & Navigation Architecture
 * **Stateful-Feel in a Stateless Environment:** Telegram bots are inherently stateless — every button 
 click is an isolated event carrying a `callbackData` payload (capped at 64 bytes). To prevent the bot from having amnesia, 
@@ -108,6 +124,7 @@ in application memory using Spring Cache backed by **Caffeine**.
     * *Solving Stale Data:* Pricing data is highly volatile. To prevent the cache from serving outdated prices, a 
   strict **10-minute TTL** is enforced. This balances fast UI pagination with data accuracy,
   while protecting Sony's API from rate-limiting. 
+
 
 ### Background Processing and Automation
 * **Automated Price Polling (Scheduler):** The application utilizes Spring's `@Scheduled` annotation to run a daily 
