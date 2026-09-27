@@ -59,6 +59,19 @@ to manage your wishlist without typing.
 
 ---
 
+## Project Structure
+```text
+francisco.ps.tracker
+├── game/           # Core Domain: Item entity, Repositories, ItemService
+├── chat/           # Core Domain: Chat mappings and types
+├── tracker/        # Core Domain: Associative Entity, composite keys, TrackerService
+├── telegram/       # Bot Interface: CommandDispatcher, Handlers, Bot config
+├── infrastructure/ # External Adapters: Sony API integration (SonyStoreClient, DTOs)
+├── scheduler/      # Background Jobs: Cron-based PriceAlertScheduler
+```
+
+---
+
 ## Database Design
 
 ![Database Schema](docs/images/schema.png)
@@ -188,19 +201,6 @@ web app, meaning data is heavily fragmented. To build a complete `Item`, the `It
        By stitching these fragmented responses together in the service layer *before* persisting to PostgreSQL, the 
   application ensures high data integrity and good UI formatting. Once a game is tracked, all subsequent reads 
   (like viewing the wishlist) hit the local database, resulting in zero external API calls.
-
----
-
-## Project Structure
-```text
-francisco.ps.tracker
-├── game/           # Core Domain: Item entity, Repositories, ItemService
-├── chat/           # Core Domain: Chat mappings and types
-├── tracker/        # Core Domain: Associative Entity, composite keys, TrackerService
-├── telegram/       # Bot Interface: CommandDispatcher, Handlers, Bot config
-├── infrastructure/ # External Adapters: Sony API integration (SonyStoreClient, DTOs)
-├── scheduler/      # Background Jobs: Cron-based PriceAlertScheduler
-```
 
 ---
 
