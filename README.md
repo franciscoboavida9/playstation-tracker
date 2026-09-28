@@ -35,7 +35,7 @@ You can interact with the live bot directly on Telegram: **[@PsPriceTrackerBot](
 
 Interact with the bot directly via Telegram using the following commands:
 * `/start` - Displays the welcome message and basic instructions.
-* `/search <game name>` - Queries the PlayStation store and returns the top 3 results with accurate pricing.
+* `/search <game name>` - Queries the PlayStation store and returns the top 5 results with accurate pricing.
 * `/wishlist` - Retrieves your personal list of tracked games and their current discount status.
 * **Inline Buttons:** Use the interactive "Track Game" and "Stop Tracking" buttons attached to bot messages 
 to manage your wishlist without typing.
